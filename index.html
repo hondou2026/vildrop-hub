@@ -330,7 +330,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
           <th class="col-status">狀態</th>
           <th class="col-priority">優先</th>
           <th class="col-assignee">負責人</th>
-          <th class="col-deadline">截止日</th>
+          <th class="col-deadline">完成日</th>
           <th class="col-progress">進度</th>
           <th style="width:6%">最新進度</th>
         </tr>
@@ -400,12 +400,12 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
         </select>
       </div>
       <div class="d-field">
-        <label class="d-label">截止日</label>
-        <input type="date" class="d-input" id="d-deadline">
+        <label class="d-label">專案開始日</label>
+        <input type="date" class="d-input" id="d-pubdate">
       </div>
       <div class="d-field">
-        <label class="d-label">預計發布日</label>
-        <input type="date" class="d-input" id="d-pubdate">
+        <label class="d-label">專案完成日</label>
+        <input type="date" class="d-input" id="d-deadline">
       </div>
     </div>
 
@@ -780,7 +780,7 @@ function initAfterLoad() {
   renderBots();
   renderResources();
   document.getElementById('m-date').valueAsDate = new Date();
-  document.getElementById('d-deadline').valueAsDate = new Date(Date.now() + 7*86400000);
+  document.getElementById('d-deadline').value = '';
 }
 
 // ======= 會議記錄（Sheets + localStorage 備用）=======
@@ -958,7 +958,7 @@ function priorityDot(p) {
 function renderStats() {
   const today = new Date();
   const weekEnd = new Date(today.getTime() + 7 * 86400000);
-  const thisWeek = PROJECTS.filter(p => p.status === '進行中' && new Date(p.deadline) <= weekEnd && p.status !== '完成');
+  const thisWeek = PROJECTS.filter(p => p.status === '進行中' && new Date(p.deadline) <= weekEnd);
   const weekEl = document.getElementById('this-week-list');
   if (weekEl) weekEl.innerHTML = thisWeek.length ? thisWeek.map(p => `<div>· ${p.name.length > 20 ? p.name.slice(0,20)+'…' : p.name}</div>`).join('') : '<div style="color:var(--muted)">本週無截止任務</div>';
 
@@ -1010,8 +1010,8 @@ function renderProjects() {
   tbody.innerHTML = filtered.map((p, i) => {
     const dl = new Date(p.deadline);
     const diffDays = Math.ceil((dl - today) / 86400000);
-    const dlClass = diffDays <= 3 && p.status !== '完成' ? 'deadline-warn' : '';
-    const dlText = !p.deadline ? '—' : diffDays < 0 ? `逾期${Math.abs(diffDays)}天` : diffDays === 0 ? '今天' : p.deadline.slice(5);
+    const dlClass = diffDays <= 3 && diffDays >= 0 && p.status !== '完成' ? 'deadline-warn' : '';
+    const dlText = !p.deadline ? '—' : p.deadline.slice(5);
     const assigneeHtml = p.assignees.map(a => `<span class="assignee-chip">${a}</span>`).join('');
     const progressHtml = `<div class="progress-cell"><div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%"></div></div><span class="progress-num">${p.progress}%</span></div>`;
     const notes = getNotes(p.name);
