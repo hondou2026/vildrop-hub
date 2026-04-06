@@ -1044,6 +1044,7 @@ let editingBot = null;
 
 // ======= RENDER =======
 function campaignClass(c) {
+  c = String(c || '');
   if (!c) return 'c-gray';
   if (c.includes('江鳥')) return 'c-blue';
   if (c.includes('蕎拉') || c.includes('Cookie') || c.includes('Bar/Cube') || c.includes('中秋')) return 'c-teal';
@@ -1108,7 +1109,7 @@ function renderProjects() {
   const tbody = document.getElementById('task-tbody');
   const today = new Date();
   const filtered = currentFilter === 'all' ? PROJECTS : PROJECTS.filter(p =>
-    p.campaign.includes(currentFilter) || p.name.includes(currentFilter) ||
+    String(p.campaign||'').includes(currentFilter) || String(p.name||'').includes(currentFilter) ||
     p.status === currentFilter || (currentFilter === '緊急' && p.priority === '🔴 緊急')
   );
   if (!tbody) return;
