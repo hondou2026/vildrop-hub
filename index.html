@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>村露品牌行銷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Google+Flex:GRAD@0;100&family=Noto+Sans+TC:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F2ED;
+  --surface: #FDFCF9;
+  --border: #E2DDD6;
+  --text: #1A1816;
+  --muted: #7A7470;
+  --accent: #2B4A3F;
+  --accent2: #8B4513;
+  --tag-bg: #EDE9E3;
+  --green: #2B4A3F;
+  --yellow: #8B7335;
+  --red: #8B2E2E;
+  --blue: #1A3A5C;
+  --radius: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; }
+.nav-logo, .stat-num, .nav-badge, h1, h2, .section-title { font-family: 'Google Flex', 'Noto Sans TC', sans-serif; }
+
+/* NAV */
+nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+.nav-logo { font-family: 'Google Flex', 'Noto Sans TC', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: .02em; color: var(--text); }
+.nav-logo span { color: var(--accent); }
+.nav-tabs { display: flex; gap: 2px; }
+.nav-tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; color: var(--muted); font-size: 13px; border: none; background: none; transition: all .15s; }
+.nav-tab:hover { background: var(--tag-bg); color: var(--text); }
+.nav-tab.active { background: var(--accent); color: #fff; }
+.nav-badge { font-family: 'Google Flex', sans-serif; font-size: 11px; color: var(--muted); }
+
+/* LAYOUT */
+.page { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* SECTION HEADER */
+.section-title { font-family: 'Google Flex', 'Noto Sans TC', sans-serif; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.section-sub { color: var(--muted); font-size: 13px; margin-bottom: 1.5rem; }
+
+/* TASK TABLE */
+.task-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.task-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+.task-table thead tr { background: var(--tag-bg); }
+.task-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.task-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.task-table tr:last-child td { border-bottom: none; }
+.task-table tr:hover td { background: #F8F5F0; }
+.col-name { width: 26%; }
+.col-campaign { width: 13%; }
+.col-type { width: 10%; }
+.col-status { width: 10%; }
+.col-priority { width: 8%; }
+.col-assignee { width: 10%; }
+.col-deadline { width: 10%; }
+.col-progress { width: 13%; }
+.task-name { font-weight: 500; color: var(--text); line-height: 1.4; }
+.task-name a { color: inherit; text-decoration: none; }
+.task-name a:hover { color: var(--accent); text-decoration: underline; }
+.tag { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.tag-campaign { background: #E8F0E8; color: #2B4A3F; }
+.tag-campaign.c-orange { background: #F5ECD8; color: #7A4F1A; }
+.tag-campaign.c-blue { background: #DDE8F5; color: #1A3A5C; }
+.tag-campaign.c-pink { background: #F5DDE8; color: #6B1A3A; }
+.tag-campaign.c-gray { background: var(--tag-bg); color: var(--muted); }
+.tag-campaign.c-brown { background: #EDE0D4; color: #5C3A1A; }
+.status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.sp-blue { background: #DDE8F5; color: #1A3A5C; }
+.sp-green { background: #DDF0E8; color: #1A4A30; }
+.sp-yellow { background: #F5ECD8; color: #7A4F1A; }
+.sp-gray { background: var(--tag-bg); color: var(--muted); }
+.sp-purple { background: #EDE0F5; color: #4A1A6B; }
+.sp-red { background: #F5DDDD; color: #6B1A1A; }
+.priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.pd-red { background: #C0392B; }
+.pd-yellow { background: #C9A84C; }
+.pd-green { background: #3B7A57; }
+.pd-gray { background: #AAA; }
+.progress-cell { display: flex; align-items: center; gap: 6px; }
+.progress-bar { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+.progress-num { font-size: 11px; color: var(--muted); min-width: 28px; text-align: right; }
+.assignee-chip { display: inline-block; background: var(--tag-bg); padding: 2px 7px; border-radius: 10px; font-size: 11px; margin-right: 2px; white-space: nowrap; }
+.deadline-warn { color: var(--red); font-weight: 500; }
+.type-tag { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--tag-bg); color: var(--muted); }
+
+/* AI BOTS */
+.bots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+.bot-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.bot-header { padding: 1rem 1.25rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+.bot-avatar { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+.bot-info .bot-name { font-weight: 500; font-size: 14px; }
+.bot-info .bot-role { font-size: 12px; color: var(--muted); }
+.bot-body { padding: 1rem 1.25rem; }
+.bot-label { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; margin-top: 1rem; }
+.bot-label:first-child { margin-top: 0; }
+.prompt-display { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .75rem; font-family: 'DM Mono', monospace; font-size: 11.5px; line-height: 1.7; color: var(--text); white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
+.prompt-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .75rem; font-family: 'DM Mono', monospace; font-size: 11.5px; line-height: 1.7; color: var(--text); resize: vertical; min-height: 140px; display: none; outline: none; }
+.prompt-textarea:focus { border-color: var(--accent); }
+.bot-actions { display: flex; gap: 8px; margin-top: .75rem; }
+.btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: all .15s; font-family: 'Inter', sans-serif; }
+.btn:hover { background: var(--tag-bg); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { opacity: .9; }
+.btn-copy { background: none; }
+.trigger-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.trigger-tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--tag-bg); color: var(--muted); }
+
+/* RESOURCES */
+.resources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.resource-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; text-decoration: none; color: var(--text); display: block; transition: box-shadow .15s; }
+.resource-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.07); text-decoration: none; }
+.resource-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: .75rem; font-size: 18px; }
+.resource-name { font-weight: 500; font-size: 13px; margin-bottom: 3px; }
+.resource-desc { font-size: 12px; color: var(--muted); }
+.resource-badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-top: 6px; }
+.brand-section { margin-bottom: 2rem; }
+.brand-section-title { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+
+/* FORMS */
+.form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; max-width: 640px; }
+.form-group { margin-bottom: 1.25rem; }
+.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); outline: none; transition: border-color .15s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 100px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.form-submit { background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: 'Noto Sans TC', sans-serif; transition: opacity .15s; }
+.form-submit:hover { opacity: .9; }
+.form-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.form-tab { padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all .15s; }
+.form-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.form-section { display: none; }
+.form-section.active { display: block; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--text); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; opacity: 0; transform: translateY(10px); transition: all .25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* FILTERS */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+.filter-chip { padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all .15s; }
+.filter-chip:hover { background: var(--tag-bg); }
+.filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.filter-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
+
+/* MEMBERS */
+.member-row { display: flex; align-items: center; gap: 10px; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.member-row:last-child { border-bottom: none; }
+.member-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
+.member-name { font-size: 13px; font-weight: 500; flex: 1; }
+.member-role { font-size: 12px; color: var(--muted); }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 3rem; color: var(--muted); }
+.empty-state .empty-icon { font-size: 32px; margin-bottom: .5rem; }
+
+/* OVERVIEW STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+.stat-num { font-family: 'Google Flex', sans-serif; font-size: 26px; font-weight: 500; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* BRAND GOALS */
+.brand-goals { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.goal-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; display:flex; align-items:flex-start; gap:1rem; }
+.goal-num { font-family:'Google Flex',sans-serif; font-size:28px; font-weight:600; color:var(--border); line-height:1; flex-shrink:0; }
+.goal-title { font-weight:500; font-size:14px; margin-bottom:3px; }
+.goal-desc { font-size:12px; color:var(--muted); line-height:1.6; }
+
+/* AOP */
+.stats-row { display:grid; grid-template-columns:1fr 3fr; gap:1rem; margin-bottom:1.5rem; }
+.aop-col { }
+.aop-q { font-size:11px; font-weight:500; color:var(--muted); letter-spacing:.05em; margin-bottom:4px; }
+.aop-items { font-size:11px; line-height:1.8; color:var(--text); }
+.aop-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+
+/* GANTT */
+.gantt-row { display:flex; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border); gap:12px; font-size:12px; }
+.gantt-row:last-child { border-bottom:none; }
+.gantt-name { width:200px; flex-shrink:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gantt-track { flex:1; display:flex; gap:3px; }
+.gantt-phase { height:22px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:500; flex:1; }
+.gp-plan { background:#E8F0E8; color:#2B4A3F; }
+.gp-design { background:#DDE8F5; color:#1A3A5C; }
+.gp-mkt { background:#F5ECD8; color:#7A4F1A; }
+.gp-done { background:var(--tag-bg); color:var(--muted); }
+.gp-active { outline:2px solid currentColor; outline-offset:-2px; }
+.gantt-header { display:flex; align-items:center; padding:6px 12px; border-bottom:1px solid var(--border); font-size:10px; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; gap:12px; background:var(--tag-bg); }
+.gantt-header-name { width:200px; flex-shrink:0; }
+
+/* DRAWER */
+.drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:200; display:none; }
+.drawer-overlay.open { display:block; }
+.drawer { position:fixed; top:0; right:-480px; width:460px; height:100vh; background:var(--surface); border-left:1px solid var(--border); z-index:201; transition:right .25s; overflow-y:auto; }
+.drawer.open { right:0; }
+.drawer-header { padding:1.25rem 1.25rem 1rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; position:sticky; top:0; background:var(--surface); }
+.drawer-title { font-weight:500; font-size:15px; line-height:1.4; }
+.drawer-campaign { font-size:12px; color:var(--muted); margin-top:3px; }
+.drawer-close { background:none; border:none; cursor:pointer; font-size:16px; color:var(--muted); padding:2px 6px; }
+.drawer-body { padding:1.25rem; }
+.drawer-section-title { font-size:11px; font-weight:500; color:var(--muted); letter-spacing:.05em; text-transform:uppercase; margin-bottom:.6rem; }
+.drawer-links { display:flex; flex-direction:column; gap:6px; }
+.drawer-link { display:block; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text); text-decoration:none; transition:background .15s; }
+.drawer-link:hover { background:var(--tag-bg); }
+.note-item { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:.75rem; margin-bottom:6px; }
+.note-date { font-size:11px; color:var(--muted); margin-bottom:4px; }
+.note-text { font-size:13px; line-height:1.6; }
+.latest-note { font-size:11px; color:var(--muted); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; }
+.latest-note:hover { color:var(--accent); }
+
+/* DRAWER FORM ELEMENTS */
+.drawer-title-input { width:100%; font-size:15px; font-weight:500; border:none; outline:none; background:transparent; color:var(--text); font-family:'Noto Sans TC',sans-serif; padding:0; margin-bottom:3px; }
+.drawer-title-input:focus { border-bottom:1.5px solid var(--accent); }
+.d-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.d-field { display:flex; flex-direction:column; }
+.d-label { font-size:11px; font-weight:500; color:var(--muted); margin-bottom:4px; letter-spacing:.03em; }
+.d-input, .d-select, .d-textarea { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:7px 10px; font-size:13px; font-family:'Noto Sans TC',sans-serif; color:var(--text); outline:none; transition:border-color .15s; }
+.d-input:focus, .d-select:focus, .d-textarea:focus { border-color:var(--accent); }
+.d-textarea { resize:vertical; min-height:60px; }
+.d-range { width:100%; margin-top:4px; }
+.d-open-btn { flex-shrink:0; padding:7px 12px; background:var(--tag-bg); border:1px solid var(--border); border-radius:6px; font-size:12px; color:var(--text); text-decoration:none; white-space:nowrap; transition:background .15s; }
+.d-open-btn:hover { background:var(--border); }
+.light-opt { display:flex; align-items:center; gap:5px; font-size:13px; cursor:pointer; }
+.subtask-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.subtask-row:last-child { border-bottom:none; }
+.subtask-del { background:none; border:none; cursor:pointer; color:var(--muted); font-size:14px; padding:0 4px; flex-shrink:0; }
+.subtask-del:hover { color:var(--red); }
+
+@media (max-width:640px) {
+  .brand-goals { grid-template-columns:1fr; }
+  .stats-row { grid-template-columns:1fr; }
+  .drawer { width:100%; right:-100%; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">村露 <span>Brand Hub</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('projects')">專案</button>
+    <button class="nav-tab" onclick="showPage('ai')">AI 助理</button>
+    <button class="nav-tab" onclick="showPage('resources')">品牌資源</button>
+    <button class="nav-tab" onclick="showPage('submit')">填寫需求</button>
+  </div>
+  <div class="nav-badge">村露行銷部</div>
+</nav>
+
+<!-- ===== 專案進度 ===== -->
+<div class="page active" id="page-projects">
+
+  <!-- 頂部工具列 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+    <div>
+      <div class="section-title" style="margin-bottom:2px">專案任務總表</div>
+      <div style="font-size:12px;color:var(--muted)">江鳥咖啡 · 蕎拉燕麥</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewTaskDrawer()" style="font-size:12px;padding:6px 16px">＋ 新增任務</button>
+  </div>
+  <div id="loading-bar" style="display:none;background:var(--accent);color:#fff;font-size:12px;padding:7px 14px;border-radius:6px;margin-bottom:1rem">正在從 Google Sheets 載入最新資料…</div>
+  <div id="api-warning" style="background:#F5ECD8;color:#7A4F1A;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:1rem"></div>
+
+  <!-- 品牌年度目標 -->
+  <div class="brand-goals">
+    <div class="goal-card">
+      <div class="goal-num">01</div>
+      <div class="goal-text">
+        <div class="goal-title">品牌形象建立</div>
+        <div class="goal-desc">建立江鳥、蕎拉、超級穀食一致且突出的品牌識別系統</div>
+      </div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-num">02</div>
+      <div class="goal-text">
+        <div class="goal-title">新品 / 專案執行</div>
+        <div class="goal-desc">從企劃→設計→行銷完整推進，確保每個專案準時高質上市</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 統計 -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label" style="margin-bottom:6px">本週進行中</div>
+      <div id="this-week-list" style="font-size:12px;line-height:1.9;color:var(--text)">—</div>
+    </div>
+    <div class="stat-card" style="grid-column:span 3">
+      <div class="stat-label" style="margin-bottom:8px">年度計畫</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="aop-grid">
+        <div class="aop-col"><div class="aop-q">Q1</div><div id="aop-q1" class="aop-items"></div></div>
+        <div class="aop-col"><div class="aop-q">Q2</div><div id="aop-q2" class="aop-items"></div></div>
+        <div class="aop-col"><div class="aop-q">Q3</div><div id="aop-q3" class="aop-items"></div></div>
+        <div class="aop-col"><div class="aop-q">Q4</div><div id="aop-q4" class="aop-items"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 甘特圖 -->
+  <div style="margin-bottom:1rem">
+    <div style="font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.6rem">進行中專案 — 企劃 / 設計 / 行銷 階段</div>
+    <div class="task-table-wrap" id="gantt-wrap"></div>
+  </div>
+
+  <!-- 篩選 -->
+  <div class="filter-bar">
+    <span class="filter-label">篩選</span>
+    <div class="filter-chip active" onclick="filterProjects('all', this)">全部</div>
+    <div class="filter-chip" onclick="filterProjects('江鳥咖啡', this)">江鳥咖啡</div>
+    <div class="filter-chip" onclick="filterProjects('蕎拉燕麥', this)">蕎拉燕麥</div>
+    <div class="filter-chip" onclick="filterProjects('進行中', this)">進行中</div>
+    <div class="filter-chip" onclick="filterProjects('緊急', this)">緊急</div>
+  </div>
+
+  <!-- 主列表 -->
+  <div class="task-table-wrap">
+    <table class="task-table">
+      <thead>
+        <tr>
+          <th class="col-name">任務名稱</th>
+          <th class="col-campaign">專案</th>
+          <th class="col-type">類型</th>
+          <th class="col-status">狀態</th>
+          <th class="col-priority">優先</th>
+          <th class="col-assignee">負責人</th>
+          <th class="col-deadline">截止日</th>
+          <th class="col-progress">進度</th>
+          <th style="width:6%">最新進度</th>
+        </tr>
+      </thead>
+      <tbody id="task-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 側拉 Drawer -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0">
+      <input class="drawer-title-input" id="drawer-title-input" type="text" placeholder="任務名稱">
+      <div class="drawer-campaign" id="drawer-campaign"></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <button class="btn" id="drawer-delete-btn" onclick="deleteCurrentTask()" style="font-size:12px;padding:5px 12px;color:var(--red);border-color:var(--red)">刪除</button>
+      <button class="btn btn-primary" onclick="saveDrawer()" style="font-size:12px;padding:5px 14px">儲存</button>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+
+    <!-- 基本資訊 -->
+    <div class="drawer-section-title">基本資訊</div>
+    <div class="d-grid2">
+      <div class="d-field">
+        <label class="d-label">專案 / Campaign</label>
+        <select class="d-select" id="d-campaign">
+          <option>江鳥咖啡</option><option>蕎拉燕麥</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">類型</label>
+        <select class="d-select" id="d-type">
+          <option>新品開發</option><option>設計提案</option><option>口碑行銷</option>
+          <option>短影音</option><option>KOL合作</option><option>貼文/限動</option>
+          <option>行銷規劃</option><option>費用記錄</option><option>產品企劃</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">狀態</label>
+        <select class="d-select" id="d-status">
+          <option>未開始</option><option>進行中</option><option>待審核</option>
+          <option>待品牌確認</option><option>排程中</option><option>已發布</option>
+          <option>完成</option><option>取消</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">優先級</label>
+        <select class="d-select" id="d-priority">
+          <option>🔴 緊急</option><option>🟡 重要</option><option>🟢 一般</option><option>⚪ 低</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">AOP 季度</label>
+        <select class="d-select" id="d-aop">
+          <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">執行階段</label>
+        <select class="d-select" id="d-phase">
+          <option>企劃</option><option>設計</option><option>行銷</option><option>完成</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">截止日</label>
+        <input type="date" class="d-input" id="d-deadline">
+      </div>
+      <div class="d-field">
+        <label class="d-label">預計發布日</label>
+        <input type="date" class="d-input" id="d-pubdate">
+      </div>
+    </div>
+
+    <div class="d-field" style="margin-top:.75rem">
+      <label class="d-label">負責人（逗號分隔）</label>
+      <input type="text" class="d-input" id="d-assignees" placeholder="例：Milla, ㄚ和">
+    </div>
+
+    <div class="d-field" style="margin-top:.75rem">
+      <label class="d-label" style="display:flex;justify-content:space-between">
+        <span>進度 <span id="d-progress-val" style="color:var(--accent)">0%</span></span>
+      </label>
+      <input type="range" min="0" max="100" step="5" class="d-range" id="d-progress" oninput="document.getElementById('d-progress-val').textContent=this.value+'%'">
+    </div>
+
+    <div class="d-field" style="margin-top:.75rem">
+      <label class="d-label">燈號</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <label class="light-opt"><input type="radio" name="d-light" value="🟢 正常"> 🟢 正常</label>
+        <label class="light-opt"><input type="radio" name="d-light" value="🟡 注意"> 🟡 注意</label>
+        <label class="light-opt"><input type="radio" name="d-light" value="🔴 異常"> 🔴 異常</label>
+      </div>
+    </div>
+
+    <div class="d-field" style="margin-top:.75rem">
+      <label class="d-label">執行長備註</label>
+      <textarea class="d-textarea" id="d-ceo-note" rows="2" placeholder="執行長或管理層的備註..."></textarea>
+    </div>
+
+    <!-- 文件連結 -->
+    <div class="drawer-section-title" style="margin-top:1.25rem">文件連結</div>
+    <div class="d-field">
+      <label class="d-label">📊 市場調查報告</label>
+      <div style="display:flex;gap:6px">
+        <input type="url" class="d-input" id="d-link-market" placeholder="貼上 Google Drive 或 Notion 連結">
+        <a class="d-open-btn" id="d-open-market" href="#" target="_blank">開啟</a>
+      </div>
+    </div>
+    <div class="d-field" style="margin-top:.6rem">
+      <label class="d-label">📋 行銷規劃報告</label>
+      <div style="display:flex;gap:6px">
+        <input type="url" class="d-input" id="d-link-plan" placeholder="貼上連結">
+        <a class="d-open-btn" id="d-open-plan" href="#" target="_blank">開啟</a>
+      </div>
+    </div>
+    <div class="d-field" style="margin-top:.6rem">
+      <label class="d-label">🎨 包裝設計稿</label>
+      <div style="display:flex;gap:6px">
+        <input type="url" class="d-input" id="d-link-design" placeholder="貼上連結">
+        <a class="d-open-btn" id="d-open-design" href="#" target="_blank">開啟</a>
+      </div>
+    </div>
+    <div class="d-field" style="margin-top:.6rem">
+      <label class="d-label">🖼 素材資料夾</label>
+      <div style="display:flex;gap:6px">
+        <input type="url" class="d-input" id="d-link-assets" placeholder="貼上連結">
+        <a class="d-open-btn" id="d-open-assets" href="#" target="_blank">開啟</a>
+      </div>
+    </div>
+    <div class="d-field" style="margin-top:.6rem">
+      <label class="d-label">↗ Notion 頁面</label>
+      <div style="display:flex;gap:6px">
+        <input type="url" class="d-input" id="d-link-notion" placeholder="Notion 連結">
+        <a class="d-open-btn" id="d-open-notion" href="#" target="_blank">開啟</a>
+      </div>
+    </div>
+
+    <!-- 子任務 -->
+    <div class="drawer-section-title" style="margin-top:1.25rem">
+      子任務
+      <button class="btn" style="float:right;font-size:11px;padding:3px 10px;margin-top:-2px" onclick="addSubtask()">＋ 新增</button>
+    </div>
+    <div id="drawer-subtasks"></div>
+    <div id="subtask-form" style="display:none;margin-top:.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.75rem">
+      <div class="d-grid2" style="margin-bottom:6px">
+        <input type="text" class="d-input" id="st-name" placeholder="子任務名稱">
+        <input type="text" class="d-input" id="st-assignee" placeholder="負責人">
+      </div>
+      <select class="d-select" id="st-status" style="margin-bottom:6px;width:100%">
+        <option>未開始</option><option>進行中</option><option>完成</option>
+      </select>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="saveSubtask()" style="font-size:12px">新增</button>
+        <button class="btn" onclick="document.getElementById('subtask-form').style.display='none'" style="font-size:12px">取消</button>
+      </div>
+    </div>
+
+    <!-- 會議記錄 -->
+    <div class="drawer-section-title" style="margin-top:1.25rem">
+      會議記錄
+      <button class="btn" style="float:right;font-size:11px;padding:3px 10px;margin-top:-2px" onclick="addMeetingNote()">＋ 新增</button>
+    </div>
+    <div id="drawer-notes"></div>
+    <div id="drawer-note-form" style="display:none;margin-top:.75rem">
+      <input type="date" id="note-date" class="d-input" style="margin-bottom:6px;width:100%">
+      <textarea id="note-content" class="d-textarea" rows="3" placeholder="這次會議的決議、進度更新、下一步..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary" onclick="saveNote()" style="font-size:12px">儲存</button>
+        <button class="btn" onclick="cancelNote()" style="font-size:12px">取消</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== AI 助理 ===== -->
+<div class="page" id="page-ai">
+  <div class="section-title">AI 虛擬設計團隊</div>
+  <div class="section-sub">點擊「編輯 Prompt」可隨時調整各助理的指令內容</div>
+
+  <div class="bots-grid" id="bots-grid"></div>
+</div>
+
+<!-- ===== 品牌資源 ===== -->
+<div class="page" id="page-resources">
+  <div class="section-title">品牌資源庫</div>
+  <div class="section-sub">所有品牌手冊、包裝設計、圖檔連結至 Google Drive，點擊直接開啟</div>
+
+  <div class="brand-section">
+    <div class="brand-section-title">江鳥咖啡</div>
+    <div class="resources-grid" id="resources-jiangbird"></div>
+  </div>
+  <div class="brand-section">
+    <div class="brand-section-title">蕎拉燕麥</div>
+    <div class="resources-grid" id="resources-qiaola"></div>
+  </div>
+</div>
+
+<!-- ===== 填寫需求 ===== -->
+<div class="page" id="page-submit">
+  <div class="section-title">填寫需求</div>
+  <div class="section-sub">選擇需求類型，填寫後會自動記錄</div>
+
+  <div class="form-tabs">
+    <button class="form-tab active" onclick="switchForm('meeting')">📝 會議記錄</button>
+    <button class="form-tab" onclick="switchForm('design')">🎨 設計需求單</button>
+    <button class="form-tab" onclick="switchForm('kol')">🤝 KOL 合作需求</button>
+  </div>
+
+  <!-- 會議記錄 -->
+  <div class="form-section active" id="form-meeting">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">會議類型</label>
+        <select class="form-select" id="m-type">
+          <option>新品會議</option>
+          <option>行銷週會</option>
+          <option>品牌會議</option>
+          <option>跨部門會議</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">會議日期</label>
+          <input type="date" class="form-input" id="m-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">主持人</label>
+          <input type="text" class="form-input" id="m-host" placeholder="姓名">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">出席人員</label>
+        <input type="text" class="form-input" id="m-attendees" placeholder="用逗號分隔，例：ㄚ和, Milla, 多莉">
+      </div>
+      <div class="form-group">
+        <label class="form-label">討論重點</label>
+        <textarea class="form-textarea" id="m-notes" placeholder="本次會議的主要討論內容..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">決議事項 / 行動項目</label>
+        <textarea class="form-textarea" id="m-actions" placeholder="每行一項，例：&#10;ㄚ和 → 完成包裝初稿 (4/15前)&#10;Milla → 安排 KOL 洽談"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">相關專案</label>
+        <select class="form-select" id="m-project">
+          <option value="">-- 選擇 --</option>
+          <option>江鳥咖啡</option>
+          <option>橋蕎拉燕麥</option>
+          <option>超級穀食 膳糧</option>
+          <option>母親節</option>
+          <option>618</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <button class="form-submit" onclick="submitForm('meeting')">提交會議記錄</button>
+    </div>
+  </div>
+
+  <!-- 設計需求 -->
+  <div class="form-section" id="form-design">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">需求名稱</label>
+        <input type="text" class="form-input" id="d-name" placeholder="例：超級穀食主圖設計">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">所屬品牌 / 專案</label>
+          <select class="form-select" id="d-brand">
+            <option>江鳥咖啡</option>
+            <option>橋蕎拉燕麥</option>
+            <option>超級穀食 膳糧</option>
+            <option>村露集團</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">需要完成日</label>
+          <input type="date" class="form-input" id="d-deadline">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">設計類型</label>
+        <select class="form-select" id="d-type">
+          <option>電商主圖</option>
+          <option>社群貼文</option>
+          <option>包裝設計</option>
+          <option>品牌手冊</option>
+          <option>Banner / 廣告素材</option>
+          <option>影像拍攝企劃</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">尺寸規格</label>
+        <input type="text" class="form-input" id="d-size" placeholder="例：800×800px, A4, 1:1 / 9:16">
+      </div>
+      <div class="form-group">
+        <label class="form-label">需求說明</label>
+        <textarea class="form-textarea" id="d-brief" placeholder="請說明設計目的、風格方向、必須包含的資訊..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">參考連結（選填）</label>
+        <input type="text" class="form-input" id="d-ref" placeholder="競品圖、Pinterest、Google Drive 連結">
+        <div class="form-hint">可貼多個連結，用逗號分隔</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">需求人</label>
+        <input type="text" class="form-input" id="d-requester" placeholder="你的名字">
+      </div>
+      <button class="form-submit" onclick="submitForm('design')">提交設計需求</button>
+    </div>
+  </div>
+
+  <!-- KOL 需求 -->
+  <div class="form-section" id="form-kol">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">KOL 名稱 / 帳號</label>
+        <input type="text" class="form-input" id="k-name" placeholder="例：@healthylife_tw">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">平台</label>
+          <select class="form-select" id="k-platform">
+            <option>Instagram</option>
+            <option>YouTube</option>
+            <option>TikTok</option>
+            <option>Facebook</option>
+            <option>Threads</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">粉絲數（約）</label>
+          <input type="text" class="form-input" id="k-followers" placeholder="例：5萬">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">合作品牌</label>
+        <select class="form-select" id="k-brand">
+          <option>江鳥咖啡</option>
+          <option>蕎拉燕麥</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">合作形式</label>
+        <select class="form-select" id="k-format">
+          <option>開箱試吃</option>
+          <option>貼文置入</option>
+          <option>限動合作</option>
+          <option>短影音</option>
+          <option>直播帶貨</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">預估費用（NT$）</label>
+        <input type="text" class="form-input" id="k-budget" placeholder="例：15,000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">備注 / 洽談狀況</label>
+        <textarea class="form-textarea" id="k-notes" placeholder="目前洽談進度、特殊條件..."></textarea>
+      </div>
+      <button class="form-submit" onclick="submitForm('kol')">提交 KOL 需求</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ======= API 設定 =======
+const API_URL = 'https://script.google.com/macros/s/AKfycbz_V8TexFG4ueoRKXS1rjYHNXQqc1tDRODy7tmY6S2bRjCzsXb3nfsBk6fn8CyOK46r/exec';
+
+async function apiFetch(params) {
+  if (!API_URL) return null;
+  const url = API_URL + '?' + new URLSearchParams(params);
+  const r = await fetch(url);
+  return r.json();
+}
+
+async function apiPost(body) {
+  if (!API_URL) return null;
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// ======= DATA =======
+const PROJECTS = [
+  { name: '江鳥 電商半磅袋', campaign: '江鳥咖啡', type: '設計提案', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和'], deadline: '2026-04-30', progress: 55, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e8353809db130f97d8a09341c', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '江鳥 一磅公版袋', campaign: '江鳥咖啡', type: '設計提案', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和', '尚昀'], deadline: '2026-04-30', progress: 60, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e8353807d920dd255feb4d7b9', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '江鳥 Bar/Cube 包裝設計', campaign: '江鳥咖啡', type: '設計提案', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和', '尚昀'], deadline: '2026-05-05', progress: 60, aop: 'Q2', phase: '設計', notionUrl: '', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '8月 江鳥 醇拿鐵 新品', campaign: '江鳥咖啡', type: '新品開發', status: '未開始', priority: '🟢 一般', assignees: ['ㄚ和', 'Milla'], deadline: '2026-07-31', progress: 0, aop: 'Q3', phase: '企劃', notionUrl: 'https://www.notion.so/3305314e835380e1886ecb8a395fbd03', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '江鳥 社群貼文 / 限動', campaign: '江鳥咖啡', type: '貼文/限動', status: '排程中', priority: '🟢 一般', assignees: ['ㄚ和', '多莉'], deadline: '2026-04-10', progress: 85, aop: 'Q2', phase: '行銷', notionUrl: 'https://www.notion.so/3355314e8353805ba4adc68353eeb863', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '江鳥 品牌手冊建立', campaign: '江鳥咖啡', type: '設計提案', status: '未開始', priority: '🟡 重要', assignees: ['ㄚ和'], deadline: '2026-06-30', progress: 0, aop: 'Q2', phase: '企劃', notionUrl: '', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 品牌形象建立', campaign: '蕎拉燕麥', type: '設計提案', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和'], deadline: '2026-05-10', progress: 35, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e835380c6b397e8ed0436e4b3', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 Cookie(Granola) 包裝設計', campaign: '蕎拉燕麥', type: '設計提案', status: '待審核', priority: '🟡 重要', assignees: ['ㄚ和'], deadline: '2026-04-22', progress: 90, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e83538058b00ff6f7add23b82', subtasks: [], ceoNote: '', light: '🟡 注意', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 OatsOvernight', campaign: '蕎拉燕麥', type: '新品開發', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和', 'Milla'], deadline: '2026-05-01', progress: 50, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e835380af8b4dd682d11527aa', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 霜果脆 禮盒', campaign: '蕎拉燕麥', type: '設計提案', status: '進行中', priority: '🟡 重要', assignees: ['ㄚ和', '尚昀'], deadline: '2026-04-25', progress: 65, aop: 'Q2', phase: '設計', notionUrl: 'https://www.notion.so/32e5314e835380599126c6d7dd6944e5', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 公版禮盒', campaign: '蕎拉燕麥', type: '設計提案', status: '完成', priority: '⚪ 低', assignees: ['ㄚ和'], deadline: '2026-03-28', progress: 100, aop: 'Q1', phase: '完成', notionUrl: 'https://www.notion.so/32e5314e83538017817cf4fdbb3e506e', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 燕麥米 行銷規劃', campaign: '蕎拉燕麥', type: '行銷規劃', status: '未開始', priority: '🟢 一般', assignees: ['Milla'], deadline: '2026-05-20', progress: 5, aop: 'Q2', phase: '企劃', notionUrl: 'https://www.notion.so/32e5314e835380aab0c2de40eabf6897', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 官網設計', campaign: '蕎拉燕麥', type: '設計提案', status: '完成', priority: '⚪ 低', assignees: ['ㄚ和', '尚昀'], deadline: '2026-03-31', progress: 100, aop: 'Q1', phase: '完成', notionUrl: 'https://www.notion.so/32d5314e83538026a35dc0d7f704d0fd', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 影像拍攝', campaign: '蕎拉燕麥', type: '設計提案', status: '完成', priority: '⚪ 低', assignees: ['ㄚ和'], deadline: '2026-03-31', progress: 100, aop: 'Q1', phase: '完成', notionUrl: 'https://www.notion.so/32e5314e835380989330c40087d51f25', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+  { name: '蕎拉 電商主圖更新', campaign: '蕎拉燕麥', type: '設計提案', status: '未開始', priority: '🟢 一般', assignees: ['ㄚ和', '尚昀'], deadline: '2026-05-15', progress: 0, aop: 'Q2', phase: '企劃', notionUrl: '', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
+];
+
+// ======= 載入與儲存（Google Sheets） =======
+let LOADED_FROM_SHEETS = false;
+
+async function loadFromSheets() {
+  if (!API_URL) { initAfterLoad(); return; }
+  showLoading(true);
+  try {
+    const tasks = await apiFetch({ action: 'getTasks' });
+    if (tasks && Array.isArray(tasks) && tasks.length > 0) {
+      PROJECTS.length = 0;
+      tasks.forEach(t => PROJECTS.push(t));
+      LOADED_FROM_SHEETS = true;
+    }
+  } catch(e) { console.warn('Sheets 載入失敗，使用本地資料', e); }
+  showLoading(false);
+  initAfterLoad();
+}
+
+function showLoading(show) {
+  const el = document.getElementById('loading-bar');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+function initAfterLoad() {
+  const warn = document.getElementById('api-warning');
+  if (!API_URL) {
+    warn.innerHTML = '⚠ 尚未連接 Google Sheets — 目前使用本地預設資料。請在 index.html 第 709 行填入 Apps Script Web App 網址。';
+  } else {
+    warn.style.display = 'none';
+  }
+  renderStats();
+  renderGantt();
+  renderProjects();
+  renderBots();
+  renderResources();
+  document.getElementById('m-date').valueAsDate = new Date();
+  document.getElementById('d-deadline').valueAsDate = new Date(Date.now() + 7*86400000);
+}
+
+// ======= 會議記錄（Sheets + localStorage 備用）=======
+function getNotes(taskName) {
+  try { return JSON.parse(localStorage.getItem('notes_' + taskName) || '[]'); } catch { return []; }
+}
+function saveNotes(taskName, notes) {
+  try { localStorage.setItem('notes_' + taskName, JSON.stringify(notes)); } catch {}
+}
+
+let currentDrawerTask = null;
+let currentDrawerIdx = -1;
+let isNewTask = false;
+
+const BOTS = [
+  {
+    id: 'b1', num: 'A1', color: '#EDE9E3', textColor: '#5A4A3A',
+    name: '風格產出助理',
+    role: '設計前期 / 競品收納 / 視覺方向快速提案',
+    triggers: ['新品會議前', '執行長提供競品圖後', '設計師開始前期調查時'],
+    inputs: '競品圖片 3–10 張、產品感覺描述、目標受眾、通路',
+    systemPrompt: `你是村露品牌的首席視覺策略顧問，專長是從市場競品圖中快速萃取品牌風格方向。
+
+你的工作流程：
+1. 分析使用者提供的競品圖或參考圖，整理出視覺共同元素（色系、字型風格、排版密度、攝影調性）
+2. 識別市場空白：哪個視覺方向目前競品尚未佔據？
+3. 依據產品屬性與目標受眾，提出 2–3 個截然不同的品牌視覺方向
+
+每個方向輸出格式：
+【方向名稱】一個有記憶點的方向命名
+【核心感覺】3 個形容詞
+【色盤建議】主色 / 輔色 / 強調色
+【字型風格】無襯線/襯線/手寫，偏向哪種國際品牌？
+【攝影調性】光線、背景、道具感、人物有無
+【Midjourney 參考提示詞】英文，可直接貼入使用
+【與競品的差異點】一句話說明這個方向的獨特性
+
+語氣：專業但平易，像內部設計顧問在做簡報。輸出繁體中文，提示詞除外。`,
+    userPrompt: `產品：橋蕎拉燕麥（即食燕麥系列）
+目標受眾：25–35 歲都市女性，注重健康但生活忙碌
+通路：電商為主（蝦皮、Momo）
+
+競品參考：[貼上截圖或描述品牌名稱]
+老闆的感覺描述：「想要有點日系，但不要太冷，要有溫度」
+
+請提出 3 個視覺方向。`
+  },
+  {
+    id: 'b2', num: 'A2', color: '#EDE5DC', textColor: '#6B3A1F',
+    name: '拍攝企劃助理',
+    role: '設計完稿後 / 商品照拍攝前 / 攝影師說明書產出',
+    triggers: ['品牌形象確認後', '預約攝影師前', '需要生成概念圖時'],
+    inputs: '確認的品牌視覺方向、需要的圖片種類、產品外觀描述',
+    systemPrompt: `你是一位專業的商業攝影企劃師，熟悉電商商品攝影、食品品牌攝影與生活風格攝影。
+
+你的工作是根據品牌視覺方向與產品資訊，產出一份完整的攝影企劃書，讓攝影師可以直接執行，不需要設計師在場說明。
+
+每份企劃書必須包含：
+
+【整體攝影調性說明】
+- 光線方向與類型（自然光/棚燈/窗光，硬光/柔光）
+- 主色調與情緒感
+- 國際品牌參考（2–3 個，說明哪裡像）
+
+【拍攝清單】（依圖片用途分類）
+針對每張圖輸出：
+  - 圖片用途（主圖/情境/說明）
+  - 構圖方式（俯視45°/平視/特寫）
+  - 背景（顏色/材質/場景）
+  - 道具清單（具體列出，含顏色）
+  - 模特/人手 有無需求
+  - 後期風格備注
+
+【禁止事項】
+列出這個品牌視覺方向明確不要的元素
+
+語氣：像攝影導演在寫拍攝指令，清晰、具體、可執行。輸出繁體中文。`,
+    userPrompt: `品牌方向：「極簡療癒系」
+核心感覺：輕盈、溫柔、日常感
+色盤：米白 / 淡綠 / 奶茶
+
+產品：橋蕎拉燕麥（牛皮紙質感袋裝，200g）
+需要的圖片：主圖 x1、生活情境 x2、成分特寫 x1、手持包裝 x1
+
+攝影師設備：Sony A7 系列，有基本布景燈`
+  },
+  {
+    id: 'b3', num: 'A3', color: '#E3EDEA', textColor: '#1A4A3A',
+    name: '電商圖文助理',
+    role: '商品照完成後 / 上架前 / 排版與縮圖產出',
+    triggers: ['商品照交付後', '需要快速出上架圖時', '外包溝通成本過高時'],
+    inputs: '商品照（已完成後期）、文案與資訊層級、平台規格',
+    systemPrompt: `你是一位資深電商視覺設計師，擅長台灣電商平台（蝦皮、Momo、官網）的商品圖排版與文案呈現。你熟悉中文版面設計，理解中文消費者的視覺習慣。
+
+你的任務是：根據提供的商品照、文案與資訊層級，產出一份完整的「電商圖排版指令」，讓外包設計師或你自己在 Illustrator / Photoshop 中可以直接按照指令操作。
+
+每份排版指令輸出格式：
+
+【圖片基本資訊】
+- 平台名稱 / 圖片用途
+- 完成尺寸（像素）
+- 解析度
+
+【版面架構說明】
+- 圖片分區（上 / 中 / 下 各放什麼）
+- 商品照位置與裁切建議
+
+【文字層級規劃】
+層級 1（最大、最搶眼）：[文字內容] — 字級建議 / 顏色
+層級 2：[文字內容] — 字級 / 顏色
+層級 3（補充說明）：[文字內容] — 字級 / 顏色
+
+【設計備注】
+- 整體留白建議
+- 需要色塊或標籤的地方
+- 禁止使用的設計元素
+
+【縮圖變化建議】（如有提供情境圖）
+提出 2–3 個不同構圖的上架縮圖方向，可搭配 Midjourney 提示詞延伸生成。
+
+語氣：像資深設計師在給外包說明，具體、有數字、可執行。輸出繁體中文，提示詞除外。`,
+    userPrompt: `平台：蝦皮，主圖（800×800px）+ 說明圖 x3（800×800px）
+
+商品：橋蕎拉燕麥原味 200g
+文案重點：
+  層級1：「5分鐘速食燕麥，不加糖不加鹽」
+  層級2：「橋蕎拉 × 燕麥 完美比例」
+  層級3：每包 200g｜12入一組｜台灣製造
+
+風格：極簡、留白、溫柔奶茶色系
+已提供：商品主圖（白底）、生活情境圖（木質桌面）`
+  }
+];
+
+const RESOURCES = {
+  jiangbird: [
+    { name: '品牌手冊', desc: 'Logo、色盤、字型規範', icon: '📘', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: 'Logo 原始檔', desc: 'AI / SVG / PNG 全格式', icon: '✏️', badge: 'AI檔', badgeColor: '#1A3A5C', url: 'https://drive.google.com' },
+    { name: '包裝設計稿', desc: '半磅袋 / 一磅袋 / Bar', icon: '📦', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: '商品攝影圖庫', desc: '2025–2026 拍攝素材', icon: '📷', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: 'Bar/Cube 專案', desc: '新品設計進行中', icon: '🔲', badge: '進行中', badgeColor: '#8B7335', url: 'https://drive.google.com' },
+    { name: '電商模板庫', desc: '蝦皮 / 官網規格', icon: '🛒', badge: '常用', badgeColor: '#2B4A3F', url: 'https://drive.google.com' },
+  ],
+  qiaola: [
+    { name: '品牌手冊', desc: 'Logo、色盤、字型規範', icon: '📗', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: 'Logo 原始檔', desc: 'AI / SVG / PNG 全格式', icon: '✏️', badge: 'AI檔', badgeColor: '#2B4A3F', url: 'https://drive.google.com' },
+    { name: '包裝設計稿', desc: 'Cookie / 禮盒 / 公版', icon: '📦', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: '電商主圖模板', desc: '蝦皮 / Momo 規格', icon: '🛒', badge: '常用', badgeColor: '#2B4A3F', url: 'https://drive.google.com' },
+    { name: '影像拍攝素材', desc: '2025–2026 商品照', icon: '📷', badge: '', badgeColor: '', url: 'https://drive.google.com' },
+    { name: 'OatsOvernight 設計', desc: '新品進行中', icon: '🌾', badge: '進行中', badgeColor: '#8B7335', url: 'https://drive.google.com' },
+  ]
+};
+
+// ======= STATE =======
+let currentFilter = 'all';
+let editingBot = null;
+
+// ======= RENDER =======
+function campaignClass(c) {
+  if (!c) return 'c-gray';
+  if (c.includes('江鳥')) return 'c-blue';
+  if (c.includes('蕎拉')) return 'c-teal';
+  return 'c-gray';
+}
+function statusPill(s) {
+  const map = { '進行中': 'sp-blue', '完成': 'sp-green', '未開始': 'sp-gray', '待審核': 'sp-yellow', '待品牌確認': 'sp-yellow', '排程中': 'sp-yellow', '取消': 'sp-red', '已發布': 'sp-green' };
+  return `<span class="status-pill ${map[s]||'sp-gray'}">${s}</span>`;
+}
+function priorityDot(p) {
+  const map = { '🔴 緊急': 'pd-red', '🟡 重要': 'pd-yellow', '🟢 一般': 'pd-green', '⚪ 低': 'pd-gray' };
+  const label = { '🔴 緊急': '緊急', '🟡 重要': '重要', '🟢 一般': '一般', '⚪ 低': '低' };
+  return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)"><span class="priority-dot ${map[p]||'pd-gray'}"></span>${label[p]||p}</span>`;
+}
+
+function renderStats() {
+  const today = new Date();
+  const weekEnd = new Date(today.getTime() + 7 * 86400000);
+  const thisWeek = PROJECTS.filter(p => p.status === '進行中' && new Date(p.deadline) <= weekEnd && p.status !== '完成');
+  const weekEl = document.getElementById('this-week-list');
+  if (weekEl) weekEl.innerHTML = thisWeek.length ? thisWeek.map(p => `<div>· ${p.name.length > 20 ? p.name.slice(0,20)+'…' : p.name}</div>`).join('') : '<div style="color:var(--muted)">本週無截止任務</div>';
+
+  ['Q1','Q2','Q3','Q4'].forEach(q => {
+    const el = document.getElementById('aop-' + q.toLowerCase());
+    if (!el) return;
+    const items = PROJECTS.filter(p => p.aop === q);
+    const dotColors = { '進行中':'#3B6EA5', '完成':'#3B7A57', '未開始':'#AAA', '待審核':'#C9A84C', '排程中':'#C9A84C' };
+    el.innerHTML = items.map(p => `<div><span class="aop-dot" style="background:${dotColors[p.status]||'#AAA'}"></span>${p.name.length > 14 ? p.name.slice(0,14)+'…' : p.name}</div>`).join('') || '<div style="color:var(--muted)">—</div>';
+  });
+}
+
+function renderGantt() {
+  const wrap = document.getElementById('gantt-wrap');
+  if (!wrap) return;
+  const active = PROJECTS.filter(p => ['進行中','排程中','待審核','待品牌確認'].includes(p.status));
+  const phases = ['企劃', '設計', '行銷'];
+  const phaseClass = { '企劃': 'gp-plan', '設計': 'gp-design', '行銷': 'gp-mkt', '完成': 'gp-done' };
+  let html = `<div class="gantt-header"><div class="gantt-header-name">進行中任務</div><div style="flex:1;display:flex;gap:3px"><div style="flex:1;text-align:center">企劃</div><div style="flex:1;text-align:center">設計</div><div style="flex:1;text-align:center">行銷</div></div></div>`;
+  html += active.map(p => {
+    const track = phases.map(ph => {
+      const phaseOrder = ['企劃','設計','行銷'];
+      const currentIdx = phaseOrder.indexOf(p.phase);
+      const thisIdx = phaseOrder.indexOf(ph);
+      let cls = phaseClass[ph] || 'gp-plan';
+      let label = ph;
+      let extra = '';
+      if (thisIdx < currentIdx) { cls = 'gp-done'; label = '✓'; }
+      else if (thisIdx === currentIdx) extra = ' gp-active';
+      return `<div class="gantt-phase ${cls}${extra}">${label}</div>`;
+    }).join('');
+    return `<div class="gantt-row"><div class="gantt-name" title="${p.name}">${p.name}</div><div class="gantt-track">${track}</div></div>`;
+  }).join('');
+  wrap.innerHTML = html || '<div style="padding:1rem;color:var(--muted);font-size:13px">目前無進行中任務</div>';
+}
+
+function renderProjects() {
+  const tbody = document.getElementById('task-tbody');
+  const today = new Date();
+  const filtered = currentFilter === 'all' ? PROJECTS : PROJECTS.filter(p =>
+    p.campaign.includes(currentFilter) || p.name.includes(currentFilter) ||
+    p.status === currentFilter || (currentFilter === '緊急' && p.priority === '🔴 緊急')
+  );
+  if (!tbody) return;
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">此分類目前沒有任務</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map((p, i) => {
+    const dl = new Date(p.deadline);
+    const diffDays = Math.ceil((dl - today) / 86400000);
+    const dlClass = diffDays <= 3 && p.status !== '完成' ? 'deadline-warn' : '';
+    const dlText = !p.deadline ? '—' : diffDays < 0 ? `逾期${Math.abs(diffDays)}天` : diffDays === 0 ? '今天' : p.deadline.slice(5);
+    const assigneeHtml = p.assignees.map(a => `<span class="assignee-chip">${a}</span>`).join('');
+    const progressHtml = `<div class="progress-cell"><div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%"></div></div><span class="progress-num">${p.progress}%</span></div>`;
+    const notes = getNotes(p.name);
+    const latestNote = notes.length ? `<span class="latest-note" onclick="openDrawer(${PROJECTS.indexOf(p)})" title="${notes[notes.length-1].text}">${notes[notes.length-1].date} ${notes[notes.length-1].text}</span>` : `<span class="latest-note" style="opacity:.4" onclick="openDrawer(${PROJECTS.indexOf(p)})">點擊新增</span>`;
+    const hasSubtask = p.subtasks && p.subtasks.length ? ` <span style="font-size:10px;background:#EDE9E3;padding:1px 5px;border-radius:8px;color:var(--muted)">${p.subtasks.length}子</span>` : '';
+    return `<tr>
+      <td class="col-name"><span class="task-name" style="cursor:pointer;display:flex;align-items:center;gap:4px" onclick="openDrawer(${PROJECTS.indexOf(p)})">${p.name}${hasSubtask}</span></td>
+      <td class="col-campaign"><span class="tag tag-campaign ${campaignClass(p.campaign)}">${p.campaign}</span></td>
+      <td class="col-type"><span class="type-tag">${p.type}</span></td>
+      <td class="col-status">${statusPill(p.status)}</td>
+      <td class="col-priority">${priorityDot(p.priority)}</td>
+      <td class="col-assignee">${assigneeHtml}</td>
+      <td class="col-deadline"><span class="${dlClass}">${dlText}</span></td>
+      <td class="col-progress">${progressHtml}</td>
+      <td>${latestNote}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ======= DRAWER =======
+function openNewTaskDrawer() {
+  isNewTask = true;
+  currentDrawerTask = {
+    id: '', name: '', campaign: '江鳥咖啡', type: '新品開發', status: '未開始',
+    priority: '🟢 一般', assignees: [], deadline: '', pubdate: '', progress: 0,
+    aop: 'Q2', phase: '企劃', light: '🟢 正常', ceoNote: '', notionUrl: '',
+    docs: { market:'', plan:'', design:'', assets:'' }, subtasks: []
+  };
+  currentDrawerIdx = -1;
+
+  document.getElementById('drawer-title-input').value = '';
+  document.getElementById('drawer-campaign').textContent = '新增任務';
+  setSelect('d-campaign', '江鳥咖啡');
+  setSelect('d-type', '新品開發');
+  setSelect('d-status', '未開始');
+  setSelect('d-priority', '🟢 一般');
+  setSelect('d-aop', 'Q2');
+  setSelect('d-phase', '企劃');
+  document.getElementById('d-deadline').value = '';
+  document.getElementById('d-pubdate').value = '';
+  document.getElementById('d-assignees').value = '';
+  document.getElementById('d-progress').value = 0;
+  document.getElementById('d-progress-val').textContent = '0%';
+  document.getElementById('d-ceo-note').value = '';
+  document.querySelectorAll('input[name="d-light"]').forEach(r => r.checked = r.value === '🟢 正常');
+  ['market','plan','design','assets','notion'].forEach(k => {
+    document.getElementById('d-link-' + k).value = '';
+    document.getElementById('d-open-' + k).href = '#';
+    document.getElementById('d-open-' + k).style.opacity = '.4';
+  });
+  document.getElementById('drawer-subtasks').innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px 0">無子任務，點擊上方新增</div>';
+  document.getElementById('drawer-notes').innerHTML = '<div style="color:var(--muted);font-size:12px;margin-bottom:.5rem;padding:4px 0">儲存任務後可新增會議記錄</div>';
+  document.getElementById('subtask-form').style.display = 'none';
+  document.getElementById('drawer-note-form').style.display = 'none';
+
+  document.getElementById('drawer-delete-btn').style.display = 'none';
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer-title-input').focus();
+}
+
+function deleteCurrentTask() {
+  if (!currentDrawerTask || isNewTask) return;
+  if (!confirm('確定要刪除「' + currentDrawerTask.name + '」嗎？')) return;
+  const idx = PROJECTS.indexOf(currentDrawerTask);
+  if (idx > -1) PROJECTS.splice(idx, 1);
+
+  if (API_URL && currentDrawerTask.id) {
+    apiPost({ action: 'deleteTask', taskId: currentDrawerTask.id })
+      .then(() => showToast('✓ 任務已刪除'))
+      .catch(() => showToast('✓ 任務已刪除（本地）'));
+  } else {
+    showToast('✓ 任務已刪除');
+  }
+  closeDrawer();
+}
+
+function openDrawer(idx) {
+  const p = PROJECTS[idx];
+  currentDrawerTask = p;
+  currentDrawerIdx = idx;
+
+  // 標題
+  document.getElementById('drawer-title-input').value = p.name;
+  document.getElementById('drawer-campaign').textContent = p.campaign + ' · ' + p.type;
+
+  // 基本欄位
+  setSelect('d-campaign', p.campaign);
+  setSelect('d-type', p.type);
+  setSelect('d-status', p.status);
+  setSelect('d-priority', p.priority);
+  setSelect('d-aop', p.aop);
+  setSelect('d-phase', p.phase);
+  document.getElementById('d-deadline').value = p.deadline || '';
+  document.getElementById('d-pubdate').value = p.pubdate || '';
+  document.getElementById('d-assignees').value = p.assignees.join(', ');
+  document.getElementById('d-progress').value = p.progress;
+  document.getElementById('d-progress-val').textContent = p.progress + '%';
+  document.getElementById('d-ceo-note').value = p.ceoNote || '';
+
+  // 燈號
+  const lightVal = p.light || '🟢 正常';
+  document.querySelectorAll('input[name="d-light"]').forEach(r => r.checked = r.value === lightVal);
+
+  // 文件連結
+  setLinkField('d-link-market', 'd-open-market', p.docs.market);
+  setLinkField('d-link-plan', 'd-open-plan', p.docs.plan);
+  setLinkField('d-link-design', 'd-open-design', p.docs.design);
+  setLinkField('d-link-assets', 'd-open-assets', p.docs.assets);
+  setLinkField('d-link-notion', 'd-open-notion', p.notionUrl);
+
+  // 動態更新開啟連結
+  ['market','plan','design','assets','notion'].forEach(k => {
+    const inp = document.getElementById('d-link-' + k);
+    const btn = document.getElementById('d-open-' + k);
+    inp.addEventListener('input', () => { btn.href = inp.value || '#'; });
+  });
+
+  renderDrawerSubtasks();
+  renderDrawerNotes(p.name);
+  document.getElementById('subtask-form').style.display = 'none';
+  document.getElementById('drawer-note-form').style.display = 'none';
+  document.getElementById('drawer-delete-btn').style.display = '';
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function setSelect(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let i = 0; i < el.options.length; i++) {
+    if (el.options[i].value === val || el.options[i].text === val) { el.selectedIndex = i; return; }
+  }
+}
+
+function setLinkField(inputId, btnId, url) {
+  document.getElementById(inputId).value = url || '';
+  document.getElementById(btnId).href = url || '#';
+  document.getElementById(btnId).style.opacity = url ? '1' : '.4';
+}
+
+function saveDrawer() {
+  if (!currentDrawerTask) return;
+  const name = document.getElementById('drawer-title-input').value.trim();
+  if (!name) { showToast('請輸入任務名稱'); return; }
+
+  const p = currentDrawerTask;
+  p.name = name;
+  p.campaign = document.getElementById('d-campaign').value;
+  p.type = document.getElementById('d-type').value;
+  p.status = document.getElementById('d-status').value;
+  p.priority = document.getElementById('d-priority').value;
+  p.aop = document.getElementById('d-aop').value;
+  p.phase = document.getElementById('d-phase').value;
+  p.deadline = document.getElementById('d-deadline').value;
+  p.pubdate = document.getElementById('d-pubdate').value;
+  p.assignees = document.getElementById('d-assignees').value.split(',').map(s => s.trim()).filter(Boolean);
+  p.progress = parseInt(document.getElementById('d-progress').value);
+  p.ceoNote = document.getElementById('d-ceo-note').value;
+  const lightEl = document.querySelector('input[name="d-light"]:checked');
+  if (lightEl) p.light = lightEl.value;
+  p.docs.market = document.getElementById('d-link-market').value;
+  p.docs.plan = document.getElementById('d-link-plan').value;
+  p.docs.design = document.getElementById('d-link-design').value;
+  p.docs.assets = document.getElementById('d-link-assets').value;
+  p.notionUrl = document.getElementById('d-link-notion').value;
+  document.getElementById('drawer-campaign').textContent = p.campaign + ' · ' + p.type;
+
+  if (isNewTask) {
+    // 新增任務
+    PROJECTS.push(p);
+    currentDrawerIdx = PROJECTS.length - 1;
+    isNewTask = false;
+
+    if (API_URL) {
+      apiPost({ action: 'addTask', task: p })
+        .then(r => {
+          if (r && r.ok && r.id) p.id = r.id;
+          showToast('✓ 任務已新增至 Google Sheets');
+        })
+        .catch(() => showToast('✓ 任務已新增（本地）'));
+    } else {
+      showToast('✓ 任務已新增');
+    }
+  } else {
+    // 更新任務
+    if (API_URL && p.id) {
+      apiPost({ action: 'saveTask', task: p })
+        .then(r => showToast(r && r.ok ? '✓ 已儲存至 Google Sheets' : '✓ 已儲存（本地）'))
+        .catch(() => showToast('✓ 已儲存（本地）'));
+    } else {
+      showToast('✓ 已儲存');
+    }
+  }
+
+  renderStats();
+  renderGantt();
+  renderProjects();
+}
+
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  isNewTask = false;
+  renderStats();
+  renderGantt();
+  renderProjects();
+}
+
+// 子任務
+function renderDrawerSubtasks() {
+  const p = currentDrawerTask;
+  const el = document.getElementById('drawer-subtasks');
+  if (!p.subtasks || !p.subtasks.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px 0">無子任務，點擊上方新增</div>';
+    return;
+  }
+  el.innerHTML = p.subtasks.map((s, i) => `
+    <div class="subtask-row">
+      <span class="priority-dot" style="background:${s.status==='完成'?'#3B7A57':s.status==='進行中'?'#3B6EA5':'#AAA'};flex-shrink:0"></span>
+      <select onchange="updateSubtaskStatus(${i},this.value)" style="font-size:11px;border:none;background:transparent;color:var(--muted);cursor:pointer;outline:none">
+        <option ${s.status==='未開始'?'selected':''}>未開始</option>
+        <option ${s.status==='進行中'?'selected':''}>進行中</option>
+        <option ${s.status==='完成'?'selected':''}>完成</option>
+      </select>
+      <span style="flex:1">${s.name}</span>
+      <span class="assignee-chip">${s.assignee}</span>
+      <button class="subtask-del" onclick="deleteSubtask(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addSubtask() {
+  document.getElementById('subtask-form').style.display = 'block';
+  document.getElementById('st-name').focus();
+}
+
+function saveSubtask() {
+  const name = document.getElementById('st-name').value.trim();
+  if (!name || !currentDrawerTask) return;
+  currentDrawerTask.subtasks = currentDrawerTask.subtasks || [];
+  currentDrawerTask.subtasks.push({
+    name,
+    assignee: document.getElementById('st-assignee').value.trim() || '—',
+    status: document.getElementById('st-status').value
+  });
+  document.getElementById('subtask-form').style.display = 'none';
+  document.getElementById('st-name').value = '';
+  document.getElementById('st-assignee').value = '';
+  renderDrawerSubtasks();
+  if (API_URL && currentDrawerTask.id) {
+    apiPost({ action: 'saveSubtasks', taskId: currentDrawerTask.id, subtasks: currentDrawerTask.subtasks });
+  }
+  showToast('子任務已新增');
+}
+
+function deleteSubtask(i) {
+  currentDrawerTask.subtasks.splice(i, 1);
+  renderDrawerSubtasks();
+}
+
+function updateSubtaskStatus(i, val) {
+  currentDrawerTask.subtasks[i].status = val;
+  renderDrawerSubtasks();
+}
+
+function renderDrawerNotes(taskName) {
+  const notes = getNotes(taskName);
+  const el = document.getElementById('drawer-notes');
+  el.innerHTML = notes.length ? notes.slice().reverse().map((n,i) => `
+    <div class="note-item">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="note-date">${n.date}</div>
+        <button onclick="deleteNote('${taskName}',${notes.length-1-i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px">✕</button>
+      </div>
+      <div class="note-text">${n.text}</div>
+    </div>`).join('') : '<div style="color:var(--muted);font-size:12px;margin-bottom:.5rem;padding:4px 0">尚無會議記錄，點擊上方新增</div>';
+}
+
+function addMeetingNote() {
+  document.getElementById('drawer-note-form').style.display = 'block';
+  document.getElementById('note-date').valueAsDate = new Date();
+  document.getElementById('note-content').value = '';
+  document.getElementById('note-content').focus();
+}
+
+function saveNote() {
+  const date = document.getElementById('note-date').value;
+  const text = document.getElementById('note-content').value.trim();
+  if (!text || !currentDrawerTask) return;
+  const notes = getNotes(currentDrawerTask.name);
+  const ts = Date.now();
+  notes.push({ date, text, timestamp: ts });
+  saveNotes(currentDrawerTask.name, notes);
+  renderDrawerNotes(currentDrawerTask.name);
+  document.getElementById('drawer-note-form').style.display = 'none';
+  // 儲存到 Sheets
+  if (API_URL && currentDrawerTask.id) {
+    apiPost({ action: 'saveNote', taskId: currentDrawerTask.id, note: { date, text } })
+      .then(() => showToast('會議記錄已儲存至 Google Sheets'))
+      .catch(() => showToast('會議記錄已儲存（本地）'));
+  } else {
+    showToast('會議記錄已儲存');
+  }
+}
+
+function deleteNote(taskName, idx) {
+  const notes = getNotes(taskName);
+  notes.splice(idx, 1);
+  saveNotes(taskName, notes);
+  renderDrawerNotes(taskName);
+}
+
+function cancelNote() {
+  document.getElementById('drawer-note-form').style.display = 'none';
+}
+
+
+function renderBots() {
+  const grid = document.getElementById('bots-grid');
+  grid.innerHTML = BOTS.map(b => `
+  <div class="bot-card" id="card-${b.id}">
+    <div class="bot-header">
+      <div class="bot-avatar" style="background:${b.color};color:${b.textColor}">${b.num}</div>
+      <div class="bot-info">
+        <div class="bot-name">${b.name}</div>
+        <div class="bot-role">${b.role}</div>
+      </div>
+    </div>
+    <div class="bot-body">
+      <div class="bot-label">觸發時機</div>
+      <div class="trigger-tags">${b.triggers.map(t => `<span class="trigger-tag">${t}</span>`).join('')}</div>
+      <div class="bot-label">需要準備</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">${b.inputs}</div>
+      <div class="bot-label">System Prompt</div>
+      <div class="prompt-display" id="display-${b.id}">${b.systemPrompt}</div>
+      <textarea class="prompt-textarea" id="textarea-${b.id}" onchange="savePrompt('${b.id}', this.value)">${b.systemPrompt}</textarea>
+      <div class="bot-actions">
+        <button class="btn" id="edit-btn-${b.id}" onclick="toggleEdit('${b.id}')">編輯 Prompt</button>
+        <button class="btn btn-copy" onclick="copyPrompt('${b.id}')">複製</button>
+        <button class="btn btn-primary" onclick="openClaude('${b.id}')">開啟 Claude ↗</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function renderResources() {
+  const map = { jiangbird: RESOURCES.jiangbird, qiaola: RESOURCES.qiaola };
+  Object.entries(map).forEach(([key, items]) => {
+    const el = document.getElementById(`resources-${key}`);
+    if (!el) return;
+    el.innerHTML = items.map(r => `
+    <a class="resource-card" href="${r.url}" target="_blank">
+      <div class="resource-icon" style="background:var(--tag-bg)">${r.icon}</div>
+      <div class="resource-name">${r.name}</div>
+      <div class="resource-desc">${r.desc}</div>
+      ${r.badge ? `<div class="resource-badge" style="background:${r.badgeColor}22;color:${r.badgeColor}">${r.badge}</div>` : ''}
+    </a>`).join('');
+  });
+}
+
+// ======= INTERACTIONS =======
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function filterProjects(val, el) {
+  currentFilter = val;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderProjects();
+}
+
+function toggleEdit(id) {
+  const display = document.getElementById('display-' + id);
+  const textarea = document.getElementById('textarea-' + id);
+  const btn = document.getElementById('edit-btn-' + id);
+  const isEditing = textarea.style.display === 'block';
+  if (isEditing) {
+    display.style.display = 'block';
+    textarea.style.display = 'none';
+    btn.textContent = '編輯 Prompt';
+    display.textContent = textarea.value;
+    showToast('已儲存');
+  } else {
+    display.style.display = 'none';
+    textarea.style.display = 'block';
+    btn.textContent = '儲存';
+    textarea.focus();
+  }
+}
+
+function savePrompt(id, val) {
+  const bot = BOTS.find(b => b.id === id);
+  if (bot) bot.systemPrompt = val;
+}
+
+function copyPrompt(id) {
+  const textarea = document.getElementById('textarea-' + id);
+  const display = document.getElementById('display-' + id);
+  const text = textarea.style.display === 'block' ? textarea.value : display.textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('已複製 Prompt'));
+}
+
+function openClaude(id) {
+  window.open('https://claude.ai', '_blank');
+}
+
+function switchForm(id) {
+  document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('form-' + id).classList.add('active');
+}
+
+function submitForm(type) {
+  const msgs = { meeting: '會議記錄已儲存！', design: '設計需求已提交，ㄚ和會盡快確認。', kol: 'KOL 資料已記錄。' };
+  showToast(msgs[type] || '已提交');
+  // 在此可接 Google Sheets API 或 Formspree
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ======= INIT =======
+loadFromSheets();
+</script>
+</body>
+</html>
