@@ -182,7 +182,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 .aop-items { font-size:11px; line-height:1.8; color:var(--text); }
 .aop-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; vertical-align:middle; }
 
-/* GANTT */
+/* GANTT / PROJECT GRID */
 .gantt-row { display:flex; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border); gap:12px; font-size:12px; }
 .gantt-row:last-child { border-bottom:none; }
 .gantt-name { width:200px; flex-shrink:0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -195,6 +195,25 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 .gp-active { outline:2px solid currentColor; outline-offset:-2px; }
 .gantt-header { display:flex; align-items:center; padding:6px 12px; border-bottom:1px solid var(--border); font-size:10px; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; gap:12px; background:var(--tag-bg); }
 .gantt-header-name { width:200px; flex-shrink:0; }
+.proj-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; padding:12px; }
+.proj-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; cursor:pointer; transition:box-shadow .15s, transform .15s; display:flex; flex-direction:column; }
+.proj-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.08); transform:translateY(-1px); }
+.proj-thumb { width:100%; aspect-ratio:16/9; background:linear-gradient(135deg, #EDE9E3 0%, #DDE8F5 100%); display:flex; align-items:center; justify-content:center; font-size:26px; color:var(--muted); overflow:hidden; }
+.proj-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.proj-body { padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:6px; }
+.proj-title { font-size:13px; font-weight:500; color:var(--text); line-height:1.35; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.proj-meta { display:flex; align-items:center; justify-content:space-between; font-size:10px; color:var(--muted); }
+.proj-phases { display:flex; gap:3px; margin-top:2px; }
+.proj-phases .gantt-phase { height:18px; font-size:9px; }
+@media (max-width: 900px) { .proj-grid { grid-template-columns:repeat(2, 1fr); } }
+@media (max-width: 600px) { .proj-grid { grid-template-columns:1fr; } }
+/* Drawer thumbnail uploader */
+.d-thumb-wrap { position:relative; width:100%; aspect-ratio:16/9; border:1px dashed var(--border); border-radius:8px; overflow:hidden; background:var(--bg); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color .15s; }
+.d-thumb-wrap:hover { border-color:var(--accent); }
+.d-thumb-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+.d-thumb-placeholder { color:var(--muted); font-size:12px; text-align:center; padding:1rem; }
+.d-thumb-remove { position:absolute; top:6px; right:6px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; display:none; }
+.d-thumb-wrap.has-image .d-thumb-remove { display:block; }
 
 /* DRAWER */
 .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:200; display:none; }
@@ -385,7 +404,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 
   <!-- 甘特圖 -->
   <div style="margin-bottom:1rem">
-    <div style="font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.6rem">進行中專案 — 企劃 / 設計 / 行銷 階段</div>
+    <div style="font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.6rem">未來 3 個月專案 — 企劃 / 設計 / 行銷 階段</div>
     <div class="task-table-wrap" id="gantt-wrap"></div>
   </div>
 
@@ -519,6 +538,15 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
       <label class="d-label">執行長備註</label>
       <textarea class="d-textarea" id="d-ceo-note" rows="2" placeholder="執行長或管理層的備註..."></textarea>
     </div>
+
+    <!-- 縮圖 -->
+    <div class="drawer-section-title" style="margin-top:1.25rem">縮圖（設計圖）</div>
+    <div class="d-thumb-wrap" id="d-thumb-wrap" onclick="document.getElementById('d-thumb-input').click()">
+      <div class="d-thumb-placeholder" id="d-thumb-placeholder">📷 點擊上傳設計圖<br><span style="font-size:10px">建議 16:9 · JPG / PNG · 上限 5MB</span></div>
+      <img id="d-thumb-img" style="display:none" alt="">
+      <button type="button" class="d-thumb-remove" onclick="event.stopPropagation();clearThumbnail()" title="移除">✕</button>
+    </div>
+    <input type="file" id="d-thumb-input" accept="image/*" style="display:none" onchange="handleThumbnailUpload(event)">
 
     <!-- 文件連結 -->
     <div class="drawer-section-title" style="margin-top:1.25rem">文件連結</div>
@@ -1084,11 +1112,25 @@ function renderStats() {
 function renderGantt() {
   const wrap = document.getElementById('gantt-wrap');
   if (!wrap) return;
-  const active = PROJECTS.filter(p => ['進行中','排程中','待審核','待品牌確認'].includes(p.status));
+  const today = new Date(); today.setHours(0,0,0,0);
+  const threeMonthsLater = new Date(today); threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+  const inWindow = PROJECTS.filter(p => {
+    if (p.status === '完成' || p.status === '取消') return false;
+    if (!p.deadline) return ['進行中','排程中','待審核','待品牌確認'].includes(p.status);
+    const dl = new Date(p.deadline);
+    return dl >= today && dl <= threeMonthsLater;
+  }).sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
+
   const phases = ['企劃', '設計', '行銷'];
   const phaseClass = { '企劃': 'gp-plan', '設計': 'gp-design', '行銷': 'gp-mkt', '完成': 'gp-done' };
-  let html = `<div class="gantt-header"><div class="gantt-header-name">進行中任務</div><div style="flex:1;display:flex;gap:3px"><div style="flex:1;text-align:center">企劃</div><div style="flex:1;text-align:center">設計</div><div style="flex:1;text-align:center">行銷</div></div></div>`;
-  html += active.map(p => {
+
+  if (!inWindow.length) {
+    wrap.innerHTML = '<div style="padding:1rem;color:var(--muted);font-size:13px">未來 3 個月無專案</div>';
+    return;
+  }
+
+  const cards = inWindow.map(p => {
+    const idx = PROJECTS.indexOf(p);
     const track = phases.map(ph => {
       const phaseOrder = ['企劃','設計','行銷'];
       const currentIdx = phaseOrder.indexOf(p.phase);
@@ -1100,9 +1142,22 @@ function renderGantt() {
       else if (thisIdx === currentIdx) extra = ' gp-active';
       return `<div class="gantt-phase ${cls}${extra}">${label}</div>`;
     }).join('');
-    return `<div class="gantt-row"><div class="gantt-name" title="${p.name}">${p.name}</div><div class="gantt-track">${track}</div></div>`;
+    const dlText = p.deadline ? p.deadline.slice(5) : '—';
+    const thumb = p.thumbnail
+      ? `<img src="${p.thumbnail}" alt="">`
+      : `<span>🖼</span>`;
+    const safeName = String(p.name || '').replace(/"/g, '&quot;');
+    return `<div class="proj-card" onclick="openDrawer(${idx})" title="${safeName}">
+      <div class="proj-thumb">${thumb}</div>
+      <div class="proj-body">
+        <div class="proj-title">${p.name || '—'}</div>
+        <div class="proj-meta"><span>${p.campaign || ''}</span><span>${dlText}</span></div>
+        <div class="proj-phases">${track}</div>
+      </div>
+    </div>`;
   }).join('');
-  wrap.innerHTML = html || '<div style="padding:1rem;color:var(--muted);font-size:13px">目前無進行中任務</div>';
+
+  wrap.innerHTML = `<div class="proj-grid">${cards}</div>`;
 }
 
 function renderProjects() {
@@ -1148,9 +1203,13 @@ function openNewTaskDrawer() {
     id: '', name: '', campaign: '江鳥', type: '新品開發', status: '未開始',
     priority: '🟢 一般', assignees: [], deadline: '', pubdate: '', progress: 0,
     aop: 'Q2', phase: '企劃', light: '🟢 正常', ceoNote: '', notionUrl: '',
-    docs: { market:'', plan:'', design:'', assets:'' }, subtasks: []
+    docs: { market:'', plan:'', design:'', assets:'' }, subtasks: [], thumbnail: ''
   };
   currentDrawerIdx = -1;
+
+  setThumbnail('');
+  const _thumbInput = document.getElementById('d-thumb-input');
+  if (_thumbInput) _thumbInput.value = '';
 
   document.getElementById('drawer-title-input').value = '';
   document.getElementById('drawer-campaign').textContent = '新增任務';
@@ -1226,6 +1285,10 @@ function openDrawer(idx) {
   const lightVal = p.light || '🟢 正常';
   document.querySelectorAll('input[name="d-light"]').forEach(r => r.checked = r.value === lightVal);
 
+  // 縮圖
+  setThumbnail(p.thumbnail || '');
+  document.getElementById('d-thumb-input').value = '';
+
   // 文件連結
   setLinkField('d-link-market', 'd-open-market', p.docs.market);
   setLinkField('d-link-plan', 'd-open-plan', p.docs.plan);
@@ -1261,6 +1324,56 @@ function setLinkField(inputId, btnId, url) {
   document.getElementById(inputId).value = url || '';
   document.getElementById(btnId).href = url || '#';
   document.getElementById(btnId).style.opacity = url ? '1' : '.4';
+}
+
+function setThumbnail(dataUrl) {
+  const wrap = document.getElementById('d-thumb-wrap');
+  const img = document.getElementById('d-thumb-img');
+  const ph = document.getElementById('d-thumb-placeholder');
+  if (!wrap || !img || !ph) return;
+  if (dataUrl) {
+    img.src = dataUrl;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+    wrap.classList.add('has-image');
+  } else {
+    img.removeAttribute('src');
+    img.style.display = 'none';
+    ph.style.display = 'block';
+    wrap.classList.remove('has-image');
+  }
+}
+
+function clearThumbnail() {
+  if (currentDrawerTask) currentDrawerTask.thumbnail = '';
+  setThumbnail('');
+  const inp = document.getElementById('d-thumb-input');
+  if (inp) inp.value = '';
+}
+
+function handleThumbnailUpload(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('請選擇圖片檔'); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('圖片過大（上限 5MB）'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const tmp = new Image();
+    tmp.onload = () => {
+      const maxW = 800;
+      const scale = Math.min(1, maxW / tmp.width);
+      const w = Math.round(tmp.width * scale);
+      const h = Math.round(tmp.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(tmp, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      if (currentDrawerTask) currentDrawerTask.thumbnail = dataUrl;
+      setThumbnail(dataUrl);
+    };
+    tmp.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function saveDrawer() {
