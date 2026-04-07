@@ -1240,9 +1240,13 @@ function renderGantt() {
 function renderProjects() {
   const tbody = document.getElementById('task-tbody');
   const today = new Date();
-  const filtered = currentFilter === 'all' ? PROJECTS : PROJECTS.filter(p =>
+  const base = currentFilter === 'all' ? PROJECTS.slice() : PROJECTS.filter(p =>
     String(p.campaign||'').includes(currentFilter) || String(p.name||'').includes(currentFilter) ||
     p.status === currentFilter || (currentFilter === '緊急' && p.priority === '🔴 緊急')
+  );
+  // 依截止日升序排序：時間越晚越後面；空 deadline 視為最晚
+  const filtered = base.slice().sort((a, b) =>
+    (a.deadline || '9999-99-99').localeCompare(b.deadline || '9999-99-99')
   );
   if (!tbody) return;
   if (filtered.length === 0) {
