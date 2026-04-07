@@ -820,7 +820,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 
 <script>
 // ======= API 設定 =======
-const API_URL = 'https://script.google.com/macros/s/AKfycbz_V8TexFG4ueoRKXS1rjYHNXQqc1tDRODy7tmY6S2bRjCzsXb3nfsBk6fn8CyOK46r/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzZmP7Sz9Jmeff4_ELQeaRLomNvqB9Ue_SvLgNKf6G9VW0KcjaHglRFfa5GJXL6Tori/exec';
 
 async function apiFetch(params) {
   if (!API_URL) return null;
@@ -875,20 +875,97 @@ const PROJECTS = [
   { name: '4月 執行長早會簡報品牌社群', campaign: '', type: '行銷規劃', status: '進行中', priority: '🟢 一般', assignees: ['ㄚ和'], deadline: '2026-04-14', pubdate: '', progress: 0, aop: 'Q2', phase: '行銷', notionUrl: 'https://www.notion.so/3345314e835380649b5ec751183241a5', subtasks: [], ceoNote: '', light: '🟢 正常', docs: { market:'', plan:'', design:'', assets:'' } },
 ];
 
-// ======= 載入與儲存（Google Sheets） =======
+// ======= 載入與儲存（Google Sheets + Drive） =======
 let LOADED_FROM_SHEETS = false;
 
+// ---- localStorage key: 全域備援（不含 base64 縮圖，避免過大） ----
+const LS_PROJECTS = 'vildrop_projects_v1';
+
+function lsSaveProjectsBackup() {
+  try {
+    const slim = PROJECTS.map(p => {
+      const c = Object.assign({}, p);
+      // 備援時不保留 base64 data URL，只留 https URL
+      if (c.thumbnail && c.thumbnail.startsWith('data:')) delete c.thumbnail;
+      return c;
+    });
+    localStorage.setItem(LS_PROJECTS, JSON.stringify(slim));
+  } catch(e) { console.warn('lsSaveProjectsBackup failed:', e); }
+}
+function lsLoadProjectsBackup() {
+  try { return JSON.parse(localStorage.getItem(LS_PROJECTS) || 'null'); } catch { return null; }
+}
+
+// 把 Sheets 回傳的 Date/ISO/時間戳統一成 YYYY-MM-DD
+function normalizeDate(v) {
+  if (!v) return '';
+  if (typeof v === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+    if (v.indexOf('T') > 0) {
+      // ISO 字串
+      const d = new Date(v);
+      if (!isNaN(d)) return d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0');
+    }
+    return v;
+  }
+  // Date 物件 / 數字
+  const d = new Date(v);
+  if (isNaN(d)) return '';
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function normalizeProject(p) {
+  p.deadline = normalizeDate(p.deadline);
+  p.pubdate = normalizeDate(p.pubdate);
+  if (!p.docs || typeof p.docs !== 'object') p.docs = { market:'', plan:'', design:'', assets:'' };
+  if (!Array.isArray(p.assignees)) p.assignees = [];
+  if (!Array.isArray(p.subtasks)) p.subtasks = [];
+  return p;
+}
+
 async function loadFromSheets() {
-  if (!API_URL) { initAfterLoad(); return; }
+  if (!API_URL) {
+    const bk = lsLoadProjectsBackup();
+    if (bk && Array.isArray(bk) && bk.length) {
+      PROJECTS.length = 0;
+      bk.forEach(t => PROJECTS.push(normalizeProject(t)));
+    } else {
+      PROJECTS.forEach(normalizeProject);
+    }
+    initAfterLoad();
+    return;
+  }
   showLoading(true);
   try {
     const tasks = await apiFetch({ action: 'getTasks' });
     if (tasks && Array.isArray(tasks) && tasks.length > 0) {
       PROJECTS.length = 0;
-      tasks.forEach(t => PROJECTS.push(t));
+      tasks.forEach(t => PROJECTS.push(normalizeProject(t)));
       LOADED_FROM_SHEETS = true;
+    } else {
+      const bk = lsLoadProjectsBackup();
+      if (bk && Array.isArray(bk) && bk.length) {
+        PROJECTS.length = 0;
+        bk.forEach(t => PROJECTS.push(normalizeProject(t)));
+      } else {
+        PROJECTS.forEach(normalizeProject);
+      }
     }
-  } catch(e) { console.warn('Sheets 載入失敗，使用本地資料', e); }
+  } catch(e) {
+    console.warn('Sheets 載入失敗，改用 localStorage 備援', e);
+    const bk = lsLoadProjectsBackup();
+    if (bk && Array.isArray(bk) && bk.length) {
+      PROJECTS.length = 0;
+      bk.forEach(t => PROJECTS.push(normalizeProject(t)));
+    } else {
+      PROJECTS.forEach(normalizeProject);
+    }
+  }
+  lsSaveProjectsBackup();
   showLoading(false);
   initAfterLoad();
 }
@@ -1203,7 +1280,7 @@ function openNewTaskDrawer() {
     id: '', name: '', campaign: '江鳥', type: '新品開發', status: '未開始',
     priority: '🟢 一般', assignees: [], deadline: '', pubdate: '', progress: 0,
     aop: 'Q2', phase: '企劃', light: '🟢 正常', ceoNote: '', notionUrl: '',
-    docs: { market:'', plan:'', design:'', assets:'' }, subtasks: [], thumbnail: ''
+    docs: { market:'', plan:'', design:'', assets:'' }, subtasks: [], thumbnail: '', thumbnailFileId: ''
   };
   currentDrawerIdx = -1;
 
@@ -1247,7 +1324,9 @@ function deleteCurrentTask() {
   if (!confirm('確定要刪除「' + currentDrawerTask.name + '」嗎？')) return;
   const idx = PROJECTS.indexOf(currentDrawerTask);
   if (idx > -1) PROJECTS.splice(idx, 1);
+  lsSaveProjectsBackup();
 
+  // Drive 上的縮圖會在後端 deleteTask 內一併刪除
   if (API_URL && currentDrawerTask.id) {
     apiPost({ action: 'deleteTask', taskId: currentDrawerTask.id })
       .then(() => showToast('✓ 任務已刪除'))
@@ -1345,7 +1424,11 @@ function setThumbnail(dataUrl) {
 }
 
 function clearThumbnail() {
-  if (currentDrawerTask) currentDrawerTask.thumbnail = '';
+  if (currentDrawerTask) {
+    currentDrawerTask.thumbnail = '';
+    currentDrawerTask._pendingThumbBase64 = null;
+    currentDrawerTask._pendingClearThumb = true; // 儲存時刪掉 Drive 上原本的檔
+  }
   setThumbnail('');
   const inp = document.getElementById('d-thumb-input');
   if (inp) inp.value = '';
@@ -1355,12 +1438,13 @@ function handleThumbnailUpload(e) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('請選擇圖片檔'); return; }
-  if (file.size > 5 * 1024 * 1024) { showToast('圖片過大（上限 5MB）'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('圖片過大（上限 10MB）'); return; }
   const reader = new FileReader();
   reader.onload = ev => {
     const tmp = new Image();
     tmp.onload = () => {
-      const maxW = 800;
+      // 上傳前再壓一次，減少 Drive 流量與儲存空間
+      const maxW = 1000;
       const scale = Math.min(1, maxW / tmp.width);
       const w = Math.round(tmp.width * scale);
       const h = Math.round(tmp.height * scale);
@@ -1368,15 +1452,21 @@ function handleThumbnailUpload(e) {
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(tmp, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-      if (currentDrawerTask) currentDrawerTask.thumbnail = dataUrl;
+      if (currentDrawerTask) {
+        // 暫存到任務物件上；saveDrawer 時會上傳到 Drive
+        currentDrawerTask._pendingThumbBase64 = dataUrl.split(',')[1]; // 去掉 data:image/jpeg;base64,
+        currentDrawerTask._pendingThumbMime = 'image/jpeg';
+        currentDrawerTask.thumbnail = dataUrl; // 暫時顯示 base64 預覽
+      }
       setThumbnail(dataUrl);
+      showToast('✓ 預覽已產生，儲存時會同步到 Google Drive');
     };
     tmp.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-function saveDrawer() {
+async function saveDrawer() {
   if (!currentDrawerTask) return;
   const name = document.getElementById('drawer-title-input').value.trim();
   if (!name) { showToast('請輸入任務名稱'); return; }
@@ -1396,6 +1486,7 @@ function saveDrawer() {
   p.ceoNote = document.getElementById('d-ceo-note').value;
   const lightEl = document.querySelector('input[name="d-light"]:checked');
   if (lightEl) p.light = lightEl.value;
+  if (!p.docs) p.docs = { market:'', plan:'', design:'', assets:'' };
   p.docs.market = document.getElementById('d-link-market').value;
   p.docs.plan = document.getElementById('d-link-plan').value;
   p.docs.design = document.getElementById('d-link-design').value;
@@ -1403,33 +1494,68 @@ function saveDrawer() {
   p.notionUrl = document.getElementById('d-link-notion').value;
   document.getElementById('drawer-campaign').textContent = p.campaign + ' · ' + p.type;
 
+  // === 縮圖：先上傳 Drive、再存 Sheets ===
+  if (API_URL && p._pendingThumbBase64) {
+    showToast('⏳ 上傳縮圖到 Google Drive…');
+    try {
+      const resp = await apiPost({
+        action: 'uploadThumbnail',
+        base64: p._pendingThumbBase64,
+        mimeType: p._pendingThumbMime || 'image/jpeg',
+        filename: (p.id || name || 'thumb') + '_' + Date.now() + '.jpg',
+        oldFileId: p.thumbnailFileId || ''
+      });
+      if (resp && resp.ok && resp.url) {
+        p.thumbnail = resp.url;
+        p.thumbnailFileId = resp.fileId;
+      } else {
+        console.warn('uploadThumbnail response', resp);
+        showToast('⚠ 縮圖上傳失敗，其他資料仍會儲存');
+      }
+    } catch(e) {
+      console.warn('uploadThumbnail error', e);
+      showToast('⚠ 縮圖上傳失敗，其他資料仍會儲存');
+    }
+    delete p._pendingThumbBase64;
+    delete p._pendingThumbMime;
+  } else if (p._pendingClearThumb && API_URL && p.thumbnailFileId) {
+    try { await apiPost({ action: 'deleteThumbnail', fileId: p.thumbnailFileId }); } catch(e) {}
+    p.thumbnailFileId = '';
+    p.thumbnail = '';
+    delete p._pendingClearThumb;
+  }
+
+  const taskForSheets = Object.assign({}, p);
+  delete taskForSheets._pendingThumbBase64;
+  delete taskForSheets._pendingThumbMime;
+  delete taskForSheets._pendingClearThumb;
+
   if (isNewTask) {
-    // 新增任務
     PROJECTS.push(p);
     currentDrawerIdx = PROJECTS.length - 1;
     isNewTask = false;
 
     if (API_URL) {
-      apiPost({ action: 'addTask', task: p })
-        .then(r => {
-          if (r && r.ok && r.id) p.id = r.id;
-          showToast('✓ 任務已新增至 Google Sheets');
-        })
-        .catch(() => showToast('✓ 任務已新增（本地）'));
+      try {
+        const r = await apiPost({ action: 'addTask', task: taskForSheets });
+        if (r && r.ok && r.id) p.id = r.id;
+        showToast('✓ 任務已新增至 Google Sheets');
+      } catch(e) { showToast('✓ 任務已新增（本地）'); }
     } else {
       showToast('✓ 任務已新增');
     }
   } else {
-    // 更新任務
     if (API_URL && p.id) {
-      apiPost({ action: 'saveTask', task: p })
-        .then(r => showToast(r && r.ok ? '✓ 已儲存至 Google Sheets' : '✓ 已儲存（本地）'))
-        .catch(() => showToast('✓ 已儲存（本地）'));
+      try {
+        const r = await apiPost({ action: 'saveTask', task: taskForSheets });
+        showToast(r && r.ok ? '✓ 已儲存至 Google Sheets' : '✓ 已儲存（本地）');
+      } catch(e) { showToast('✓ 已儲存（本地）'); }
     } else {
       showToast('✓ 已儲存');
     }
   }
 
+  lsSaveProjectsBackup();
   renderStats();
   renderGantt();
   renderProjects();
