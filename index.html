@@ -283,7 +283,51 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
   .today-grid { grid-template-columns:1fr; }
   .drawer { width:100%; right:-100%; }
 }
-</style>
+
+/* ===== 費用申請 ===== */
+.exp-toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+.exp-filter { width:auto; min-width:130px; font-size:12px; padding:6px 10px; }
+.exp-summary { color:var(--muted); font-size:12px; padding:4px 2px; }
+.exp-upload { border:1.5px dashed var(--border); border-radius:8px; padding:1rem; text-align:center; cursor:pointer; background:var(--bg); transition:border-color .15s,background .15s; }
+.exp-upload:hover { border-color:var(--accent); background:var(--tag-bg); }
+.exp-upload-text { color:var(--muted); font-size:13px; }
+.exp-attachments { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.exp-att-item { display:flex; align-items:center; gap:8px; padding:6px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; }
+.exp-att-item a { color:var(--accent); text-decoration:none; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.exp-att-item a:hover { text-decoration:underline; }
+.exp-att-size { color:var(--muted); font-size:11px; }
+.exp-att-del { background:none; border:none; cursor:pointer; color:var(--red); font-size:14px; padding:0 4px; }
+.exp-att-count { display:inline-block; background:var(--tag-bg); padding:1px 7px; border-radius:10px; font-size:11px; color:var(--muted); }
+.exp-amount { font-variant-numeric:tabular-nums; text-align:right; font-weight:500; }
+.exp-row-link { cursor:pointer; }
+.exp-row-link:hover td { background:#F8F5F0; }
+
+/* 列印樣式（針對費用申請） */
+@media print {
+  body * { visibility:hidden !important; }
+  #expense-print-root, #expense-print-root * { visibility:visible !important; }
+  #expense-print-root { position:absolute; left:0; top:0; width:100%; }
+  nav, .toast, .drawer, .drawer-overlay { display:none !important; }
+}
+#expense-print-root { display:none; }
+@media print {
+  #expense-print-root { display:block; }
+  @page { size: A4 portrait; margin: 0; }
+}
+.ep-a4 { width:210mm; height:297mm; padding:8mm 22mm; box-sizing:border-box; page-break-after:always; background:#fff; color:#000; }
+.ep-a4:last-child { page-break-after:auto; }
+.ep-card { width:165mm; height:115mm; border:1.2px solid #000; box-sizing:border-box; font-family:'Noto Sans TC',sans-serif; font-size:10pt; color:#000; position:relative; }
+.ep-card + .ep-card { margin-top:8mm; }
+.ep-title { text-align:center; font-size:14pt; font-weight:700; padding:2mm 0 1mm; border-bottom:1px solid #000; }
+.ep-meta { display:flex; justify-content:space-between; font-size:9pt; padding:1.2mm 3mm; border-bottom:1px solid #000; }
+.ep-table { width:100%; border-collapse:collapse; }
+.ep-table td { border:1px solid #000; padding:1mm 2mm; font-size:9pt; vertical-align:middle; }
+.ep-table td.ep-lbl { width:18mm; background:#fff; text-align:center; font-weight:500; }
+.ep-table td.ep-lbl-sm { width:16mm; background:#fff; text-align:center; font-weight:500; }
+.ep-chk { font-family:'Arial Unicode MS','DejaVu Sans',sans-serif; }
+.ep-notes { height:14mm; }
+.ep-sign { display:flex; justify-content:space-between; font-size:8.5pt; padding:1.2mm 3mm 0.8mm; border-top:1px solid #000; }
+.ep-auth { font-size:7.5pt; padding:0.6mm 3mm 1mm; border-top:1px dashed #000; color:#000; }
 </head>
 <body>
 
@@ -295,6 +339,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
     <button class="nav-tab" onclick="showPage('ai')">AI 助理</button>
     <button class="nav-tab" onclick="showPage('resources')">品牌資源</button>
     <button class="nav-tab" onclick="showPage('submit')">填寫需求</button>
+    <button class="nav-tab" onclick="showPage('expense')">費用申請</button>
   </div>
   <div class="nav-badge">村露行銷部</div>
 </nav>
@@ -816,7 +861,156 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
   </div>
 </div>
 
+<!-- ===== 費用申請 ===== -->
+<div class="page" id="page-expense">
+  <div class="section-title">費用申請單</div>
+  <div class="section-sub">線上填寫、附上發票 PDF，批次列印交財務</div>
+
+  <div class="exp-toolbar">
+    <button class="btn btn-primary" onclick="openExpenseDrawer()">＋ 新增申請</button>
+    <button class="btn" onclick="printSelectedExpenses()">🖨 列印所選</button>
+    <button class="btn" onclick="exportExpensesCSV()">⬇ 匯出 CSV</button>
+    <button class="btn" onclick="markSelectedExpenses('已送出')">✓ 標記已送出</button>
+    <div style="flex:1"></div>
+    <select class="d-select exp-filter" id="exp-filter-status" onchange="renderExpenses()">
+      <option value="">全部狀態</option>
+      <option value="草稿">草稿</option>
+      <option value="已列印">已列印</option>
+      <option value="已送出">已送出</option>
+    </select>
+    <select class="d-select exp-filter" id="exp-filter-month" onchange="renderExpenses()">
+      <option value="">全部月份</option>
+    </select>
+    <input type="text" class="d-input exp-filter" id="exp-filter-search" placeholder="搜尋付款對象/用途…" oninput="renderExpenses()">
+  </div>
+
+  <div class="exp-summary" id="exp-summary"></div>
+
+  <div class="task-table-wrap" style="margin-top:12px">
+    <table class="task-table">
+      <thead>
+        <tr>
+          <th style="width:36px"><input type="checkbox" id="exp-check-all" onchange="toggleAllExpenses(this.checked)"></th>
+          <th style="width:90px">申請日</th>
+          <th>付款對象</th>
+          <th>用途</th>
+          <th style="width:90px;text-align:right">金額</th>
+          <th style="width:50px">單據</th>
+          <th style="width:80px">狀態</th>
+          <th style="width:60px">附件</th>
+          <th style="width:110px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="expense-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 費用申請 Drawer -->
+<div class="drawer-overlay" id="expense-drawer-overlay" onclick="closeExpenseDrawer()"></div>
+<div class="drawer" id="expense-drawer">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="expense-drawer-title">新增費用申請</div>
+      <div class="drawer-campaign" id="expense-approval-hint">填寫金額後會提示需要的簽核層級</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <button class="btn" id="expense-delete-btn" onclick="deleteCurrentExpense()" style="font-size:12px;padding:5px 12px;color:var(--red);border-color:var(--red)">刪除</button>
+      <button class="btn btn-primary" onclick="saveExpenseDrawer()" style="font-size:12px;padding:5px 14px">儲存</button>
+      <button class="drawer-close" onclick="closeExpenseDrawer()">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-title">基本資訊</div>
+    <div class="d-grid2">
+      <div class="d-field">
+        <label class="d-label">申請單位</label>
+        <input type="text" class="d-input" id="e-department" placeholder="例：行銷部">
+      </div>
+      <div class="d-field">
+        <label class="d-label">申請日期</label>
+        <input type="date" class="d-input" id="e-applyDate">
+      </div>
+      <div class="d-field">
+        <label class="d-label">申請人</label>
+        <input type="text" class="d-input" id="e-applicant" placeholder="你的名字">
+      </div>
+      <div class="d-field">
+        <label class="d-label">費用歸屬單位</label>
+        <input type="text" class="d-input" id="e-costCenter" placeholder="例：行銷部 / 江鳥">
+      </div>
+    </div>
+
+    <div class="drawer-section-title" style="margin-top:1rem">付款資訊</div>
+    <div class="d-grid2">
+      <div class="d-field">
+        <label class="d-label">付款對象</label>
+        <input type="text" class="d-input" id="e-payee" placeholder="廠商 / 員工姓名">
+      </div>
+      <div class="d-field">
+        <label class="d-label">付款日期</label>
+        <input type="date" class="d-input" id="e-payDate">
+      </div>
+      <div class="d-field">
+        <label class="d-label">付款方式</label>
+        <select class="d-select" id="e-payMethod">
+          <option value="即期票">即期票</option>
+          <option value="轉帳">轉帳</option>
+          <option value="現金">現金（限員工）</option>
+        </select>
+      </div>
+      <div class="d-field">
+        <label class="d-label">費用性質</label>
+        <select class="d-select" id="e-costType">
+          <option value="部門費用">部門費用</option>
+          <option value="專案費用">專案費用</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="drawer-section-title" style="margin-top:1rem">用途與金額</div>
+    <div class="d-field" style="margin-bottom:8px">
+      <label class="d-label">用途說明</label>
+      <textarea class="d-textarea" id="e-usage" rows="2" placeholder="簡述用途"></textarea>
+    </div>
+    <div class="d-grid2">
+      <div class="d-field">
+        <label class="d-label">會計科目</label>
+        <input type="text" class="d-input" id="e-account" placeholder="例：文具用品、廣告費…">
+      </div>
+      <div class="d-field">
+        <label class="d-label">金額（含稅）</label>
+        <input type="number" class="d-input" id="e-amount" placeholder="0" oninput="updateApprovalHint()">
+      </div>
+      <div class="d-field">
+        <label class="d-label">單據張數</label>
+        <input type="number" class="d-input" id="e-receiptCount" placeholder="1" min="0">
+      </div>
+      <div class="d-field">
+        <label class="d-label">狀態</label>
+        <select class="d-select" id="e-status">
+          <option value="草稿">草稿</option>
+          <option value="已列印">已列印</option>
+          <option value="已送出">已送出</option>
+        </select>
+      </div>
+    </div>
+    <div class="d-field" style="margin-top:8px">
+      <label class="d-label">填寫說明 / 備註</label>
+      <textarea class="d-textarea" id="e-notes" rows="2" placeholder="任何補充說明"></textarea>
+    </div>
+
+    <div class="drawer-section-title" style="margin-top:1rem">發票 / 單據附件</div>
+    <div class="exp-upload" onclick="document.getElementById('e-file-input').click()">
+      <div class="exp-upload-text">📎 點擊上傳 PDF 或圖片（可多檔）</div>
+    </div>
+    <input type="file" id="e-file-input" accept="application/pdf,image/*" multiple style="display:none" onchange="handleExpenseFileUpload(event)">
+    <div id="e-attachments" class="exp-attachments"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+<div id="expense-print-root"></div>
 
 <script>
 // ======= API 設定 =======
@@ -1240,13 +1434,9 @@ function renderGantt() {
 function renderProjects() {
   const tbody = document.getElementById('task-tbody');
   const today = new Date();
-  const base = currentFilter === 'all' ? PROJECTS.slice() : PROJECTS.filter(p =>
+  const filtered = currentFilter === 'all' ? PROJECTS : PROJECTS.filter(p =>
     String(p.campaign||'').includes(currentFilter) || String(p.name||'').includes(currentFilter) ||
     p.status === currentFilter || (currentFilter === '緊急' && p.priority === '🔴 緊急')
-  );
-  // 依截止日升序排序：時間越晚越後面；空 deadline 視為最晚
-  const filtered = base.slice().sort((a, b) =>
-    (a.deadline || '9999-99-99').localeCompare(b.deadline || '9999-99-99')
   );
   if (!tbody) return;
   if (filtered.length === 0) {
@@ -1929,8 +2119,484 @@ function renderLogHistory(el, logs) {
   </div>`).join('');
 }
 
+// ======================================================
+// 費用申請單模組
+// ======================================================
+let EXPENSES = [];
+let currentExpense = null;
+let isNewExpense = false;
+const EXPENSE_SELECTED = new Set();
+
+async function loadExpenses() {
+  if (!API_URL) { EXPENSES = lsLoadExpensesBackup() || []; return; }
+  try {
+    const data = await apiFetch({ action: 'getExpenses' });
+    if (data && Array.isArray(data)) {
+      EXPENSES = data;
+      lsSaveExpensesBackup();
+    } else {
+      EXPENSES = lsLoadExpensesBackup() || [];
+    }
+  } catch(e) {
+    console.warn('載入費用申請失敗，使用本地備份', e);
+    EXPENSES = lsLoadExpensesBackup() || [];
+  }
+}
+
+function lsSaveExpensesBackup() {
+  try { localStorage.setItem('vildrop_expenses_v1', JSON.stringify(EXPENSES)); } catch {}
+}
+function lsLoadExpensesBackup() {
+  try { return JSON.parse(localStorage.getItem('vildrop_expenses_v1') || '[]'); } catch { return []; }
+}
+
+function expenseMonthKey(exp) {
+  const d = exp.applyDate || exp.createdAt || '';
+  return (d + '').slice(0, 7);
+}
+
+function getFilteredExpenses() {
+  const status = document.getElementById('exp-filter-status')?.value || '';
+  const month = document.getElementById('exp-filter-month')?.value || '';
+  const q = (document.getElementById('exp-filter-search')?.value || '').trim().toLowerCase();
+  return EXPENSES.filter(e => {
+    if (status && e.status !== status) return false;
+    if (month && expenseMonthKey(e) !== month) return false;
+    if (q) {
+      const hay = (e.payee + ' ' + e.usage + ' ' + e.account + ' ' + e.applicant).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => (b.applyDate || '').localeCompare(a.applyDate || ''));
+}
+
+function refreshExpenseMonthFilter() {
+  const sel = document.getElementById('exp-filter-month');
+  if (!sel) return;
+  const keep = sel.value;
+  const months = Array.from(new Set(EXPENSES.map(expenseMonthKey).filter(Boolean))).sort().reverse();
+  sel.innerHTML = '<option value="">全部月份</option>' + months.map(m => `<option value="${m}">${m}</option>`).join('');
+  if (keep && months.includes(keep)) sel.value = keep;
+}
+
+function renderExpenses() {
+  refreshExpenseMonthFilter();
+  const tbody = document.getElementById('expense-tbody');
+  if (!tbody) return;
+  const list = getFilteredExpenses();
+  const summary = document.getElementById('exp-summary');
+  const total = list.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  if (summary) summary.textContent = `共 ${list.length} 筆，合計 NT$ ${total.toLocaleString()}`;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">尚無費用申請</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(e => {
+    const checked = EXPENSE_SELECTED.has(e.id) ? 'checked' : '';
+    const statusClass = e.status === '已送出' ? 'sp-green' : (e.status === '已列印' ? 'sp-blue' : 'sp-gray');
+    const attCount = (e.attachments || []).length;
+    const amountStr = Number(e.amount || 0).toLocaleString();
+    return `<tr class="exp-row-link">
+      <td><input type="checkbox" ${checked} onclick="event.stopPropagation()" onchange="toggleExpenseSelect('${e.id}', this.checked)"></td>
+      <td onclick="openExpenseDrawerById('${e.id}')">${e.applyDate || ''}</td>
+      <td onclick="openExpenseDrawerById('${e.id}')">${escapeHtml(e.payee || '')}</td>
+      <td onclick="openExpenseDrawerById('${e.id}')" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(e.usage || '')}</td>
+      <td class="exp-amount" onclick="openExpenseDrawerById('${e.id}')">${amountStr}</td>
+      <td onclick="openExpenseDrawerById('${e.id}')" style="text-align:center">${e.receiptCount || 0}</td>
+      <td onclick="openExpenseDrawerById('${e.id}')"><span class="status-pill ${statusClass}">${e.status || '草稿'}</span></td>
+      <td onclick="openExpenseDrawerById('${e.id}')"><span class="exp-att-count">${attCount}</span></td>
+      <td>
+        <button class="btn" style="font-size:11px;padding:3px 8px" onclick="printExpenses([getExpenseById('${e.id}')])">🖨</button>
+        <button class="btn" style="font-size:11px;padding:3px 8px" onclick="openAllAttachments('${e.id}')">📎</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function getExpenseById(id) { return EXPENSES.find(e => String(e.id) === String(id)); }
+
+function toggleExpenseSelect(id, checked) {
+  if (checked) EXPENSE_SELECTED.add(id); else EXPENSE_SELECTED.delete(id);
+}
+function toggleAllExpenses(checked) {
+  const list = getFilteredExpenses();
+  EXPENSE_SELECTED.clear();
+  if (checked) list.forEach(e => EXPENSE_SELECTED.add(e.id));
+  renderExpenses();
+}
+function getSelectedExpenses() {
+  return EXPENSES.filter(e => EXPENSE_SELECTED.has(e.id));
+}
+
+// ----- Drawer 開關 -----
+function openExpenseDrawer() {
+  isNewExpense = true;
+  currentExpense = {
+    id: '', applicant: '', department: '', applyDate: new Date().toISOString().slice(0, 10),
+    payee: '', payMethod: '轉帳', payDate: '',
+    costCenter: '', costType: '部門費用',
+    usage: '', account: '', amount: '', receiptCount: 1,
+    notes: '', attachments: [], status: '草稿'
+  };
+  fillExpenseDrawer(currentExpense);
+  document.getElementById('expense-drawer-title').textContent = '新增費用申請';
+  document.getElementById('expense-delete-btn').style.display = 'none';
+  document.getElementById('expense-drawer').classList.add('open');
+  document.getElementById('expense-drawer-overlay').classList.add('open');
+}
+
+function openExpenseDrawerById(id) {
+  const exp = getExpenseById(id);
+  if (!exp) return;
+  isNewExpense = false;
+  currentExpense = JSON.parse(JSON.stringify(exp));
+  fillExpenseDrawer(currentExpense);
+  document.getElementById('expense-drawer-title').textContent = '編輯費用申請';
+  document.getElementById('expense-delete-btn').style.display = '';
+  document.getElementById('expense-drawer').classList.add('open');
+  document.getElementById('expense-drawer-overlay').classList.add('open');
+}
+
+function closeExpenseDrawer() {
+  document.getElementById('expense-drawer').classList.remove('open');
+  document.getElementById('expense-drawer-overlay').classList.remove('open');
+  currentExpense = null;
+}
+
+function fillExpenseDrawer(e) {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+  set('e-department', e.department);
+  set('e-applyDate', e.applyDate);
+  set('e-applicant', e.applicant);
+  set('e-costCenter', e.costCenter);
+  set('e-payee', e.payee);
+  set('e-payDate', e.payDate);
+  set('e-payMethod', e.payMethod || '轉帳');
+  set('e-costType', e.costType || '部門費用');
+  set('e-usage', e.usage);
+  set('e-account', e.account);
+  set('e-amount', e.amount);
+  set('e-receiptCount', e.receiptCount);
+  set('e-status', e.status || '草稿');
+  set('e-notes', e.notes);
+  renderExpenseAttachments();
+  updateApprovalHint();
+}
+
+function collectExpenseFromDrawer() {
+  const get = id => (document.getElementById(id)?.value || '').trim();
+  const expense = Object.assign({}, currentExpense, {
+    department: get('e-department'),
+    applyDate: get('e-applyDate'),
+    applicant: get('e-applicant'),
+    costCenter: get('e-costCenter'),
+    payee: get('e-payee'),
+    payDate: get('e-payDate'),
+    payMethod: get('e-payMethod'),
+    costType: get('e-costType'),
+    usage: get('e-usage'),
+    account: get('e-account'),
+    amount: Number(get('e-amount')) || 0,
+    receiptCount: Number(get('e-receiptCount')) || 0,
+    status: get('e-status') || '草稿',
+    notes: get('e-notes'),
+    attachments: currentExpense.attachments || []
+  });
+  return expense;
+}
+
+function updateApprovalHint() {
+  const amt = Number(document.getElementById('e-amount')?.value) || 0;
+  let level = '';
+  if (amt <= 0) level = '請填寫金額';
+  else if (amt <= 1000) level = '簽核：店長';
+  else if (amt <= 10000) level = '簽核：課級';
+  else if (amt <= 50000) level = '簽核：部門主管';
+  else level = '簽核：執行長';
+  const hint = document.getElementById('expense-approval-hint');
+  if (hint) hint.textContent = level;
+}
+
+function renderExpenseAttachments() {
+  const wrap = document.getElementById('e-attachments');
+  if (!wrap || !currentExpense) return;
+  const atts = currentExpense.attachments || [];
+  if (!atts.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = atts.map((a, i) => `
+    <div class="exp-att-item">
+      <span>${a.mime && a.mime.startsWith('image/') ? '🖼' : '📄'}</span>
+      <a href="${a.url}" target="_blank" title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</a>
+      <span class="exp-att-size">${formatBytes(a.size || 0)}</span>
+      <button class="exp-att-del" onclick="removeExpenseAttachment(${i})" title="移除">✕</button>
+    </div>
+  `).join('');
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+async function handleExpenseFileUpload(event) {
+  if (!currentExpense) return;
+  const files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  for (const file of files) {
+    if (file.size > 15 * 1024 * 1024) { showToast(`⚠ ${file.name} 超過 15MB，已略過`); continue; }
+    showToast(`⏳ 上傳 ${file.name}…`);
+    try {
+      const base64 = await readFileAsBase64(file);
+      const r = await apiPost({
+        action: 'uploadExpenseFile',
+        base64: base64,
+        filename: file.name,
+        mimeType: file.type,
+        size: file.size
+      });
+      if (r && r.ok) {
+        currentExpense.attachments = currentExpense.attachments || [];
+        currentExpense.attachments.push({
+          fileId: r.fileId, url: r.url, name: r.name || file.name,
+          mime: r.mime || file.type, size: r.size || file.size
+        });
+        renderExpenseAttachments();
+        showToast(`✓ ${file.name} 已上傳`);
+      } else {
+        showToast(`⚠ ${file.name} 上傳失敗`);
+      }
+    } catch(err) {
+      console.warn(err);
+      showToast(`⚠ ${file.name} 上傳失敗`);
+    }
+  }
+  event.target.value = '';
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const s = fr.result || '';
+      const idx = (typeof s === 'string') ? s.indexOf(',') : -1;
+      resolve(idx >= 0 ? s.slice(idx + 1) : s);
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+async function removeExpenseAttachment(idx) {
+  if (!currentExpense || !currentExpense.attachments) return;
+  const att = currentExpense.attachments[idx];
+  if (!att) return;
+  currentExpense.attachments.splice(idx, 1);
+  renderExpenseAttachments();
+  if (att.fileId && API_URL) {
+    try { await apiPost({ action: 'deleteExpenseFile', fileId: att.fileId }); } catch(e) {}
+  }
+}
+
+async function saveExpenseDrawer() {
+  if (!currentExpense) return;
+  const exp = collectExpenseFromDrawer();
+  if (!exp.applyDate) { showToast('請填寫申請日期'); return; }
+  if (!exp.payee) { showToast('請填寫付款對象'); return; }
+  if (!exp.usage) { showToast('請填寫用途說明'); return; }
+
+  if (isNewExpense) {
+    if (API_URL) {
+      try {
+        const r = await apiPost({ action: 'addExpense', expense: exp });
+        if (r && r.ok) { exp.id = r.id; EXPENSES.push(exp); showToast('✓ 費用申請已新增'); }
+        else { exp.id = String(Date.now()); EXPENSES.push(exp); showToast('✓ 已新增（本地）'); }
+      } catch(e) { exp.id = String(Date.now()); EXPENSES.push(exp); showToast('✓ 已新增（本地）'); }
+    } else {
+      exp.id = String(Date.now()); EXPENSES.push(exp); showToast('✓ 已新增（本地）');
+    }
+  } else {
+    const idx = EXPENSES.findIndex(e => String(e.id) === String(exp.id));
+    if (idx >= 0) EXPENSES[idx] = exp;
+    if (API_URL) {
+      try {
+        const r = await apiPost({ action: 'saveExpense', expense: exp });
+        showToast(r && r.ok ? '✓ 已儲存' : '✓ 已儲存（本地）');
+      } catch(e) { showToast('✓ 已儲存（本地）'); }
+    } else {
+      showToast('✓ 已儲存（本地）');
+    }
+  }
+  lsSaveExpensesBackup();
+  renderExpenses();
+  closeExpenseDrawer();
+}
+
+async function deleteCurrentExpense() {
+  if (!currentExpense || !currentExpense.id) return;
+  if (!confirm('確定要刪除這筆費用申請？附件也會一併移除。')) return;
+  const id = currentExpense.id;
+  EXPENSES = EXPENSES.filter(e => String(e.id) !== String(id));
+  EXPENSE_SELECTED.delete(id);
+  if (API_URL) {
+    try { await apiPost({ action: 'deleteExpense', id: id }); } catch(e) {}
+  }
+  lsSaveExpensesBackup();
+  renderExpenses();
+  closeExpenseDrawer();
+  showToast('✓ 已刪除');
+}
+
+// ----- 列印 -----
+function printSelectedExpenses() {
+  const list = getSelectedExpenses();
+  if (!list.length) { showToast('請先勾選要列印的申請單'); return; }
+  printExpenses(list);
+}
+
+function chk(cur, val) { return cur === val ? '☑' : '☐'; }
+
+function buildExpenseCardHtml(e) {
+  const apply = (e.applyDate || '').split('-');
+  const pay = (e.payDate || '').split('-');
+  const y1 = apply[0] || '', m1 = apply[1] || '', d1 = apply[2] || '';
+  const y2 = pay[0] || '', m2 = pay[1] || '', d2 = pay[2] || '';
+  const amount = Number(e.amount || 0).toLocaleString();
+  return `
+  <div class="ep-card">
+    <div class="ep-title">村露 費用申請單</div>
+    <div class="ep-meta">
+      <span>申請單位：${escapeHtml(e.department || '')}</span>
+      <span>申請日期：${y1} 年 ${m1} 月 ${d1} 日</span>
+    </div>
+    <table class="ep-table">
+      <tr>
+        <td class="ep-lbl" rowspan="2">付款對象</td>
+        <td rowspan="2" style="width:50mm">${escapeHtml(e.payee || '')}</td>
+        <td class="ep-lbl-sm">付款方式</td>
+        <td><span class="ep-chk">${chk(e.payMethod,'即期票')}</span> 即期票　<span class="ep-chk">${chk(e.payMethod,'轉帳')}</span> 轉帳　<span class="ep-chk">${chk(e.payMethod,'現金')}</span> 現金(限員工)</td>
+      </tr>
+      <tr>
+        <td class="ep-lbl-sm">付款日期</td>
+        <td>${y2} 年 ${m2} 月 ${d2} 日</td>
+      </tr>
+      <tr>
+        <td class="ep-lbl">費用歸屬單位</td>
+        <td>${escapeHtml(e.costCenter || '')}</td>
+        <td class="ep-lbl-sm">費用性質</td>
+        <td><span class="ep-chk">${chk(e.costType,'部門費用')}</span> 部門費用　<span class="ep-chk">${chk(e.costType,'專案費用')}</span> 專案費用</td>
+      </tr>
+      <tr>
+        <td class="ep-lbl" rowspan="2">用途說明</td>
+        <td rowspan="2">${escapeHtml(e.usage || '')}</td>
+        <td class="ep-lbl-sm">會計科目</td>
+        <td>${escapeHtml(e.account || '')}　<span style="float:right">單據：${e.receiptCount || 0} 張</span></td>
+      </tr>
+      <tr>
+        <td class="ep-lbl-sm">金額(含稅)</td>
+        <td>NT$ ${amount}</td>
+      </tr>
+      <tr>
+        <td class="ep-lbl">填寫說明</td>
+        <td colspan="3" class="ep-notes">${escapeHtml(e.notes || '')}</td>
+      </tr>
+    </table>
+    <div class="ep-sign">
+      <span>執行長：</span><span>部門主管：</span><span>課級：</span><span>組級主管/店長：</span><span>申請人：</span>
+    </div>
+    <div class="ep-auth">簽核權限：店長 1,000 元以下，課級 10,000 元以下，部門主管 50,000 元以下，50,000 元以上到執行長</div>
+  </div>`;
+}
+
+function printExpenses(list) {
+  list = (list || []).filter(Boolean);
+  if (!list.length) { showToast('沒有可列印的項目'); return; }
+  // 每 2 張一頁
+  const pages = [];
+  for (let i = 0; i < list.length; i += 2) pages.push(list.slice(i, i + 2));
+  const html = pages.map(p => `<div class="ep-a4">${p.map(buildExpenseCardHtml).join('')}</div>`).join('');
+  const root = document.getElementById('expense-print-root');
+  root.innerHTML = html;
+
+  // 使用頁內列印（@media print 控制可見性），避免新視窗字型載入問題
+  const ids = list.map(e => e.id);
+  setTimeout(() => {
+    window.print();
+    // 列印後標記狀態
+    markExpensesPrinted(ids);
+  }, 100);
+}
+
+async function markExpensesPrinted(ids) {
+  if (!ids || !ids.length) return;
+  ids.forEach(id => {
+    const e = getExpenseById(id);
+    if (e && e.status === '草稿') e.status = '已列印';
+  });
+  lsSaveExpensesBackup();
+  renderExpenses();
+  if (API_URL) {
+    try { await apiPost({ action: 'markExpenseStatus', ids: ids, status: '已列印' }); } catch(e) {}
+  }
+}
+
+async function markSelectedExpenses(status) {
+  const list = getSelectedExpenses();
+  if (!list.length) { showToast('請先勾選'); return; }
+  list.forEach(e => e.status = status);
+  lsSaveExpensesBackup();
+  renderExpenses();
+  if (API_URL) {
+    try {
+      await apiPost({ action: 'markExpenseStatus', ids: list.map(e => e.id), status: status });
+      showToast(`✓ 已標記 ${list.length} 筆為 ${status}`);
+    } catch(e) { showToast('✓ 已標記（本地）'); }
+  } else {
+    showToast(`✓ 已標記 ${list.length} 筆`);
+  }
+}
+
+function openAllAttachments(id) {
+  const e = getExpenseById(id);
+  if (!e || !e.attachments || !e.attachments.length) { showToast('此筆沒有附件'); return; }
+  e.attachments.forEach(a => {
+    if (a.url) window.open(a.url, '_blank');
+  });
+}
+
+// ----- CSV 匯出 -----
+function exportExpensesCSV() {
+  const list = getSelectedExpenses().length ? getSelectedExpenses() : getFilteredExpenses();
+  if (!list.length) { showToast('沒有可匯出的資料'); return; }
+  const headers = ['申請日','申請人','申請單位','付款對象','付款方式','付款日期','費用歸屬','費用性質','用途說明','會計科目','金額','單據張數','狀態','備註'];
+  const rows = list.map(e => [
+    e.applyDate, e.applicant, e.department, e.payee, e.payMethod, e.payDate,
+    e.costCenter, e.costType, e.usage, e.account, e.amount, e.receiptCount,
+    e.status, e.notes
+  ]);
+  const csv = '\uFEFF' + [headers, ...rows].map(r =>
+    r.map(v => {
+      const s = (v == null ? '' : String(v)).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    }).join(',')
+  ).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `費用申請_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`✓ 已匯出 ${list.length} 筆`);
+}
+
 // ======= INIT =======
 loadFromSheets();
+loadExpenses().then(() => renderExpenses());
 </script>
 </body>
 </html>
