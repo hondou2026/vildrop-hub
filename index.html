@@ -2219,8 +2219,7 @@ function renderExpenses() {
       <td onclick="openExpenseDrawerById('${e.id}')"><span class="status-pill ${statusClass}">${e.status || '草稿'}</span></td>
       <td onclick="openExpenseDrawerById('${e.id}')"><span class="exp-att-count">${attCount}</span></td>
       <td>
-        <button class="btn" style="font-size:11px;padding:3px 7px" title="列印" onclick="printExpenses([getExpenseById('${e.id}')])">🖨</button>
-        <button class="btn" style="font-size:11px;padding:3px 7px" title="開啟附件" onclick="openAllAttachments('${e.id}')">📎</button>
+        <button class="btn" style="font-size:11px;padding:3px 7px" title="一鍵列印表單＋附件" onclick="printExpenseWithAttachments('${e.id}')">🖨</button>
         <button class="btn" style="font-size:11px;padding:3px 7px" title="複製為新申請" onclick="duplicateExpense('${e.id}')">📋</button>
       </td>
     </tr>`;
@@ -2619,6 +2618,20 @@ function openAllAttachments(id) {
   e.attachments.forEach(a => {
     if (a.url) window.open(a.url, '_blank');
   });
+}
+
+// 一鍵列印：先開附件預覽分頁，再觸發本頁列印
+function printExpenseWithAttachments(id) {
+  const e = getExpenseById(id);
+  if (!e) return;
+  const atts = (e.attachments || []).filter(a => a && a.url);
+  // 先把附件各開一個新分頁（Drive 預覽頁可直接按 Ctrl+P 列印）
+  atts.forEach(a => window.open(a.url, '_blank'));
+  if (atts.length) {
+    showToast(`📎 已開啟 ${atts.length} 個附件分頁，列印完表單後請切過去列印`);
+  }
+  // 稍等瀏覽器處理完彈窗再觸發列印
+  setTimeout(() => printExpenses([e]), 300);
 }
 
 // ----- CSV 匯出 -----
