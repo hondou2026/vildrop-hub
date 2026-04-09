@@ -390,7 +390,10 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 
       <!-- 歷史日誌 -->
       <div class="today-card">
-        <div class="today-card-title">📋 近期日誌</div>
+        <div class="today-card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📋 近 30 天日誌</span>
+          <button class="btn" onclick="openRawSheet()" style="font-size:11px;padding:3px 10px">🔗 開啟 Sheet</button>
+        </div>
         <div id="daily-log-history" class="today-card-body">
           <div style="color:var(--muted);font-size:12px;padding:8px 0">尚無日誌記錄</div>
         </div>
@@ -872,6 +875,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
     <button class="btn" onclick="printSelectedExpenses()">🖨 列印所選</button>
     <button class="btn" onclick="exportExpensesCSV()">⬇ 匯出 CSV</button>
     <button class="btn" onclick="markSelectedExpenses('已送出')">✓ 標記已送出</button>
+    <button class="btn" onclick="openRawSheet()">🔗 開啟 Sheet</button>
     <div style="flex:1"></div>
     <select class="d-select exp-filter" id="exp-filter-status" onchange="renderExpenses()">
       <option value="">全部狀態</option>
@@ -1017,6 +1021,8 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 <script>
 // ======= API 設定 =======
 const API_URL = 'https://script.google.com/macros/s/AKfycbzZmP7Sz9Jmeff4_ELQeaRLomNvqB9Ue_SvLgNKf6G9VW0KcjaHglRFfa5GJXL6Tori/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1sJKW4j0ZSXZe875gBoNF13rXXv36UNc0XOIPDYUILVs/edit';
+function openRawSheet() { window.open(SHEET_URL, '_blank'); }
 
 async function apiFetch(params) {
   if (!API_URL) return null;
@@ -2093,27 +2099,38 @@ function loadDailyLog() {
     const d = new Date(l.date); return !isNaN(d) && d >= cutoff;
   });
 
+  const mergeAndRender = (sheetLogs) => {
+    const seen = new Set();
+    const merged = [];
+    (sheetLogs || []).forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
+    localRecent.forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
+    merged.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
+    renderLogHistory(el, merged);
+  };
+
   if (API_URL) {
-    apiFetch({ action: 'getDailyLog', days: 30 }).then(sheetLogs => {
-      let merged;
+    apiFetch({ action: 'getDailyLog', days: 30 }).then(async sheetLogs => {
       if (sheetLogs && Array.isArray(sheetLogs) && sheetLogs.length) {
-        // 以 date+timestamp 去重，sheet 優先
-        const seen = new Set();
-        merged = [];
-        sheetLogs.forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
-        localRecent.forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
-      } else {
-        merged = localRecent;
+        mergeAndRender(sheetLogs);
+        return;
       }
-      merged.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
-      renderLogHistory(el, merged);
-    }).catch(() => {
-      localRecent.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
-      renderLogHistory(el, localRecent);
-    });
+      // Fallback：舊版 backend 不支援 days 參數，改逐日抓最近 30 天
+      const logs = [];
+      const today = new Date(); today.setHours(0,0,0,0);
+      const promises = [];
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today.getTime() - i * 86400000);
+        const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        promises.push(apiFetch({ action: 'getDailyLog', date: ds }).catch(() => []));
+      }
+      try {
+        const results = await Promise.all(promises);
+        results.forEach(r => { if (Array.isArray(r)) r.forEach(l => logs.push(l)); });
+      } catch(e) {}
+      mergeAndRender(logs);
+    }).catch(() => mergeAndRender([]));
   } else {
-    localRecent.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
-    renderLogHistory(el, localRecent);
+    mergeAndRender([]);
   }
 }
 
