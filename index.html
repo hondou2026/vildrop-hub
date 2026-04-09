@@ -916,6 +916,7 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
       <div class="drawer-campaign" id="expense-approval-hint">填寫金額後會提示需要的簽核層級</div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <button class="btn" id="expense-duplicate-btn" onclick="duplicateCurrentExpense()" style="font-size:12px;padding:5px 12px">📋 複製</button>
       <button class="btn" id="expense-delete-btn" onclick="deleteCurrentExpense()" style="font-size:12px;padding:5px 12px;color:var(--red);border-color:var(--red)">刪除</button>
       <button class="btn btn-primary" onclick="saveExpenseDrawer()" style="font-size:12px;padding:5px 14px">儲存</button>
       <button class="drawer-close" onclick="closeExpenseDrawer()">✕</button>
@@ -2085,24 +2086,34 @@ function submitDailyLog() {
 function loadDailyLog() {
   const el = document.getElementById('daily-log-history');
   if (!el) return;
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-  // Load from localStorage
-  const logs = JSON.parse(localStorage.getItem('daily_logs') || '[]');
-  const recent = logs.slice(-10).reverse();
+  // 最近 30 天
+  const localLogs = JSON.parse(localStorage.getItem('daily_logs') || '[]');
+  const cutoff = new Date(); cutoff.setHours(0,0,0,0); cutoff.setDate(cutoff.getDate() - 29);
+  const localRecent = localLogs.filter(l => {
+    const d = new Date(l.date); return !isNaN(d) && d >= cutoff;
+  });
 
   if (API_URL) {
-    apiFetch({ action: 'getDailyLog', date: dateStr }).then(sheetLogs => {
+    apiFetch({ action: 'getDailyLog', days: 30 }).then(sheetLogs => {
+      let merged;
       if (sheetLogs && Array.isArray(sheetLogs) && sheetLogs.length) {
-        const merged = [...sheetLogs.reverse(), ...recent.filter(l => l.date !== dateStr)];
-        renderLogHistory(el, merged.slice(0, 10));
+        // 以 date+timestamp 去重，sheet 優先
+        const seen = new Set();
+        merged = [];
+        sheetLogs.forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
+        localRecent.forEach(l => { const k = l.date + '|' + (l.timestamp || l.content); if (!seen.has(k)) { seen.add(k); merged.push(l); } });
       } else {
-        renderLogHistory(el, recent);
+        merged = localRecent;
       }
-    }).catch(() => renderLogHistory(el, recent));
+      merged.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
+      renderLogHistory(el, merged);
+    }).catch(() => {
+      localRecent.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
+      renderLogHistory(el, localRecent);
+    });
   } else {
-    renderLogHistory(el, recent);
+    localRecent.sort((a, b) => (b.date + ' ' + (b.timestamp || '')).localeCompare(a.date + ' ' + (a.timestamp || '')));
+    renderLogHistory(el, localRecent);
   }
 }
 
@@ -2208,8 +2219,9 @@ function renderExpenses() {
       <td onclick="openExpenseDrawerById('${e.id}')"><span class="status-pill ${statusClass}">${e.status || '草稿'}</span></td>
       <td onclick="openExpenseDrawerById('${e.id}')"><span class="exp-att-count">${attCount}</span></td>
       <td>
-        <button class="btn" style="font-size:11px;padding:3px 8px" onclick="printExpenses([getExpenseById('${e.id}')])">🖨</button>
-        <button class="btn" style="font-size:11px;padding:3px 8px" onclick="openAllAttachments('${e.id}')">📎</button>
+        <button class="btn" style="font-size:11px;padding:3px 7px" title="列印" onclick="printExpenses([getExpenseById('${e.id}')])">🖨</button>
+        <button class="btn" style="font-size:11px;padding:3px 7px" title="開啟附件" onclick="openAllAttachments('${e.id}')">📎</button>
+        <button class="btn" style="font-size:11px;padding:3px 7px" title="複製為新申請" onclick="duplicateExpense('${e.id}')">📋</button>
       </td>
     </tr>`;
   }).join('');
@@ -2247,6 +2259,7 @@ function openExpenseDrawer() {
   fillExpenseDrawer(currentExpense);
   document.getElementById('expense-drawer-title').textContent = '新增費用申請';
   document.getElementById('expense-delete-btn').style.display = 'none';
+  document.getElementById('expense-duplicate-btn').style.display = 'none';
   document.getElementById('expense-drawer').classList.add('open');
   document.getElementById('expense-drawer-overlay').classList.add('open');
 }
@@ -2259,8 +2272,46 @@ function openExpenseDrawerById(id) {
   fillExpenseDrawer(currentExpense);
   document.getElementById('expense-drawer-title').textContent = '編輯費用申請';
   document.getElementById('expense-delete-btn').style.display = '';
+  document.getElementById('expense-duplicate-btn').style.display = '';
   document.getElementById('expense-drawer').classList.add('open');
   document.getElementById('expense-drawer-overlay').classList.add('open');
+}
+
+// 複製一筆現有申請 → 預帶新申請表單（欄位保留，日期歸零，附件不帶）
+function duplicateExpense(id) {
+  const src = getExpenseById(id);
+  if (!src) return;
+  isNewExpense = true;
+  currentExpense = {
+    id: '',
+    applicant: src.applicant || '',
+    department: src.department || '',
+    applyDate: new Date().toISOString().slice(0, 10),
+    payee: src.payee || '',
+    payMethod: src.payMethod || '轉帳',
+    payDate: '',
+    costCenter: src.costCenter || '',
+    costType: src.costType || '部門費用',
+    usage: src.usage || '',
+    account: src.account || '',
+    amount: src.amount || '',
+    receiptCount: src.receiptCount || 1,
+    notes: src.notes || '',
+    attachments: [],
+    status: '草稿'
+  };
+  fillExpenseDrawer(currentExpense);
+  document.getElementById('expense-drawer-title').textContent = '複製申請（請確認並上傳本月發票）';
+  document.getElementById('expense-delete-btn').style.display = 'none';
+  document.getElementById('expense-duplicate-btn').style.display = 'none';
+  document.getElementById('expense-drawer').classList.add('open');
+  document.getElementById('expense-drawer-overlay').classList.add('open');
+  showToast('✓ 已複製，請確認金額並上傳本月發票');
+}
+
+function duplicateCurrentExpense() {
+  if (!currentExpense || !currentExpense.id) return;
+  duplicateExpense(currentExpense.id);
 }
 
 function closeExpenseDrawer() {
